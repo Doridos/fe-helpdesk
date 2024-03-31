@@ -1,7 +1,7 @@
 <script>
 import Header from "../lib/Header.svelte";
 import {
-    Button, Input, Label,
+    Button, Checkbox, Dropdown, DropdownDivider, DropdownItem, Input, Label,
     Modal,
     Search, Select,
     Table,
@@ -13,8 +13,8 @@ import {
 } from "flowbite-svelte";
 import {
     ArrowDownOutline,
-    ArrowLeftToBracketOutline, ChevronDownOutline,
-    CirclePlusOutline, CirclePlusSolid,
+    ArrowLeftToBracketOutline, ChevronDownOutline, ChevronUpOutline,
+    CirclePlusOutline, CirclePlusSolid, CloseCircleOutline, CloseCircleSolid,
     SearchOutline,
     UserSolid
 } from "flowbite-svelte-icons";
@@ -30,8 +30,9 @@ let comments = [
 ];
 
 let searchTerm = ''
-const requests = [
+let requests = [
     {
+        id: 1,
         name: 'Výměna oznámení',
         description: "Prosím o výměnu oznámení",
         state: "Vyřešen",
@@ -42,6 +43,7 @@ const requests = [
         dateOfCompletion: "12.02.2024"
     },
     {
+        id: 2,
         name: "Problém s Teamsy",
         description: "Nejde zapnout teams",
         state: "Nový",
@@ -52,6 +54,7 @@ const requests = [
         dateOfCompletion: "12.02.2024"
     },
     {
+        id: 3,
         name: "Nabíječka na notebook",
         description: "Nabíječka nenabíjí",
         state: "Neplatný",
@@ -62,6 +65,7 @@ const requests = [
         dateOfCompletion: "12.02.2024"
     },
     {
+        id: 4,
         name: "Rozbitý monitor",
         description: "Nefunguje monitor",
         state: "V řešení",
@@ -72,6 +76,18 @@ const requests = [
         dateOfCompletion: "12.02.2024"
     },
     {
+        id: 5,
+        name: "Rozbitý monitor",
+        description: "Nefunguje monitor",
+        state: "V řešení",
+        category: "Hardware",
+        priority: "Kritická",
+        dateOfAnnouncement: "15.01.2024",
+        assignedTo: "Jan Novák",
+        dateOfCompletion: "12.02.2024"
+    },
+    {
+        id: 6,
         name: "Přístup do emailu",
         description: "Prosím o přístup",
         state: "Neplatný",
@@ -82,6 +98,29 @@ const requests = [
         dateOfCompletion: "12.02.2024"
     },
     {
+        id: 7,
+        name: "Přístup do emailu",
+        description: "Prosím o přístup",
+        state: "Neplatný",
+        category: "Intranet",
+        priority: "Kritická",
+        dateOfAnnouncement: "15.01.2024",
+        assignedTo: "Jan Novák",
+        dateOfCompletion: "12.02.2024"
+    },
+    {
+        id: 8,
+        name: "Rozbitý token",
+        description: "Nefunguje mi token",
+        state: "Neplatný",
+        category: "Jiné",
+        priority: "Nízká",
+        dateOfAnnouncement: "15.01.2024",
+        assignedTo: "Jan Novák",
+        dateOfCompletion: "12.02.2024"
+    },
+    {
+        id: 9,
         name: "Rozbitý token",
         description: "Nefunguje mi token",
         state: "Neplatný",
@@ -92,8 +131,13 @@ const requests = [
         dateOfCompletion: "12.02.2024"
     },
 ];
-$: filteredItems = requests.filter((request) => request.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1);
-$: pageItems = filteredItems.slice((currentPage - 1) * itemsPerPage, (currentPage - 1) * itemsPerPage + itemsPerPage);
+let filtersByState = {
+    "Nový": true,
+    "V řešení": true,
+    "Vyřešen": true,
+    "Neplatný": true,
+}
+
 
 function stateClass(state) {
     switch (state) {
@@ -161,9 +205,9 @@ let typeOfRequests = [
 ];
 
 let test
-
+let filterActive = false
 let currentPage = 1;
-const itemsPerPage = 3;
+const itemsPerPage = 10;
 
 function setPage(page) {
     currentPage = page;
@@ -180,10 +224,41 @@ function nextPage() {
         currentPage++;
     }
 }
+let sortDirection = 'asc';
+let sortBy = 'id';
+function sortItems() {
+    if(sortBy === 'id'){
+        if (sortDirection === 'asc') {
+            requests = requests.sort((a, b) => a[sortBy] - b[sortBy]);
+        } else {
+            requests = requests.sort((a, b) => b[sortBy] - a[sortBy]);
+        }
+    }
+    else {
+        if (sortDirection === 'asc') {
+            requests = requests.sort((a, b) => a[sortBy].localeCompare(b[sortBy]));
+            console.log(requests)
+        } else {
+            requests = requests.sort((a, b) => b[sortBy].localeCompare(a[sortBy]));
+            console.log(requests)
+        }
+    }
+}
 
 
+function resetFilter(){
+    filterActive = false
+    stateDropdownActive = false
+    sortDirection = 'asc'
+    sortBy = 'id'
+    filterActive = false
+    sortItems()
+}
+
+$: filteredItems = requests.filter((request) => request.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1 && filtersByState[request.state]);
+$: pageItems = filteredItems.slice((currentPage - 1) * itemsPerPage, (currentPage - 1) * itemsPerPage + itemsPerPage)
 $: totalPages = Math.ceil(filteredItems.length / itemsPerPage);
-
+let stateDropdownActive = false
 </script>
 
 <div>
@@ -233,8 +308,12 @@ $: totalPages = Math.ceil(filteredItems.length / itemsPerPage);
     <div class="page-background">
         <div class="page-content mt-[25]">
             <div class="flex justify-between items-center p-4">
+                <div class="flex w-1/3">
                 <Button on:click={() => (requestModal = true)} size="sm" class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0"><CirclePlusSolid class="mr-1" size="sm" />Založit požadavek</Button>
-
+                {#if filterActive}
+                <Button on:click={resetFilter} size="sm" class="ml-2 bg-transparent text-gray-600 hover:bg-transparent hover:text-gray-800 focus-within:ring-opacity-0"><CloseCircleSolid class="mr-1" size="sm" />Zrušit filtr</Button>
+                {/if}
+                </div>
 
                 <div class="flex w-1/3">
                     <Select class="w-1/2 focus:border-blue-700 focus:ring-blue-700 mr-3" items={typeOfRequests} bind:value={selectedTypeOfRequests} placeholder="Vyberte pohled"/>
@@ -245,18 +324,47 @@ $: totalPages = Math.ceil(filteredItems.length / itemsPerPage);
                     </Button>
                     </div>
             </div>
-            <Table striped={true} class="xl:table-fixed w-full overflow-x-auto">
+            <Table striped={true} divClass="min-height" class="xl:table-fixed w-full h-1/2 overflow-x-auto">
                 <TableHead>
                     <TableHeadCell><div class="flex items-center">POŽADAVEK <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
                     <TableHeadCell><div class="flex items-center">POPIS POŽADAVKU <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
-                    <TableHeadCell><div class="flex items-center">STAV <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
+                    <TableHeadCell><div class="{sortBy === 'state' ? 'text-orange-500' : ''} flex items-center hover:cursor-pointer" on:click={() => {stateDropdownActive = !stateDropdownActive
+                    }}>STAV
+                        {#if !stateDropdownActive}
+                        <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1 " size="sm" />
+                        {:else}
+                        <ChevronUpOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" />
+                        {/if}
+                    </div>
+                        <Dropdown>
+                            <DropdownItem on:click={() => {
+                                filterActive = true
+                                sortBy = 'state';
+                                sortDirection = 'asc'
+                                sortItems()
+                            }}>Vzestupně</DropdownItem>
+                            <DropdownItem on:click={() => {
+                                filterActive = true
+                                sortBy = 'state';
+                                sortDirection = 'desc'
+                            sortItems()
+                        }}>Sestupně</DropdownItem>
+                            <DropdownDivider />
+                            <DropdownItem><Checkbox bind:checked={filtersByState.Nový}>Nový</Checkbox></DropdownItem>
+                            <DropdownItem><Checkbox bind:checked={filtersByState.Neplatný}>Neplatný</Checkbox></DropdownItem>
+                            <DropdownItem><Checkbox bind:checked={filtersByState["V řešení"]}>V řešení</Checkbox></DropdownItem>
+                            <DropdownItem><Checkbox bind:checked={filtersByState.Vyřešen}>Vyřešen</Checkbox></DropdownItem>
+
+                        </Dropdown></TableHeadCell>
                     <TableHeadCell><div class="flex items-center">KATEGORIE <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
                     <TableHeadCell><div class="flex items-center">PRIORITA <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
                     <TableHeadCell><div class="flex items-center">DATUM OHLÁŠENÍ <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
                     <TableHeadCell><div class="flex items-center">PŘIŘAZENO KOMU <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
                     <TableHeadCell><div class="flex items-center">DATUM DOKONČENÍ <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
                 </TableHead>
+                {#if pageItems.length !== 0}
                 <TableBody >
+
                     {#each pageItems as request}
                     <TableBodyRow>
                         <TableBodyCell>{request.name}</TableBodyCell>
@@ -270,6 +378,9 @@ $: totalPages = Math.ceil(filteredItems.length / itemsPerPage);
                     </TableBodyRow>
                     {/each}
                 </TableBody>
+                    {:else }
+                    <h2 class="ml-6">Nenašli jsme žádné požadavky</h2>
+                    {/if}
             </Table>
             <div class="pagination">
                 <button on:click={prevPage}>Zpět</button>
@@ -288,6 +399,10 @@ $: totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 </div>
 
 <style>
+
+    .min-height{
+        min-height: 300px;
+    }
 
     .pagination {
         display: flex;

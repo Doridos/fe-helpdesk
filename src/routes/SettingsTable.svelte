@@ -3,7 +3,7 @@ import Header from "../lib/Header.svelte";
 
 import {
     Button, Input, Label,
-    Modal, Pagination,
+    Modal, MultiSelect, Pagination,
     Search, Select,
     Table,
     TableBody,
@@ -21,8 +21,62 @@ import {
 } from "flowbite-svelte-icons";
 
 let requestModal = false;
+let userNameAndSurname
+let userRole
+let userCategories = []
 
 let searchTerm = ''
+
+function setCurrentUser(id){
+    let userToSet = users.find(user => user.id === id)
+    userNameAndSurname = userToSet.name
+    switch (userToSet.role){
+        case "Běžný uživatel":
+            userRole = "bu"
+            break
+        case "Řešitel":
+            userRole = "sr"
+            break
+        case "Manažer":
+            userRole = "mr"
+            break
+        case "Admin":
+            userRole = "an"
+            break
+        default:
+            userRole = "bu"
+            break
+    }
+    userToSet.categories.forEach(category => {
+
+        console.log(category)
+        switch (category){
+            case "Intranet":
+                userCategories.push('it')
+                break
+            case "Software":
+                userCategories.push('sw')
+                break
+            case "Majetek":
+                userCategories.push('pr')
+                break
+            case "Hardware":
+                userCategories.push('hw')
+                break
+            case "Oprávnění":
+                userCategories.push('rg')
+                break
+            case "Jiné":
+                userCategories.push('ot')
+                break
+            default:
+                userCategories = []
+                break
+        }
+    }
+)
+
+}
 const users = [
     {
         id: '1',
@@ -85,20 +139,20 @@ function categoryClass(state) {
 }
 let selectedCategory
 let categories = [
-    { value: 'us', name: 'Intranet' },
-    { value: 'ca', name: 'Software' },
-    { value: 'fr', name: 'Majetek' },
-    { value: 'fr', name: 'Hardware' },
-    { value: 'fr', name: 'Oprávnění' },
-    { value: 'fr', name: 'Jiné' }
+    { value: 'it', name: 'Intranet' },
+    { value: 'sw', name: 'Software' },
+    { value: 'pr', name: 'Majetek' },
+    { value: 'hw', name: 'Hardware' },
+    { value: 'rg', name: 'Oprávnění' },
+    { value: 'ot', name: 'Jiné' }
 ];
 
-let selectedPriority
-let priority = [
-    { value: 'us', name: 'Nízká' },
-    { value: 'ca', name: 'Střední' },
-    { value: 'fr', name: 'Vysoká' },
-    { value: 'fr', name: 'Kritická' },
+let selectedRole
+let role = [
+    { value: 'bu', name: 'Běžný uživatel' },
+    { value: 'sr', name: 'Řešitel' },
+    { value: 'mr', name: 'Manažer' },
+    { value: 'an', name: 'Admin' },
 ];
 
 let selectedState = "us"
@@ -132,37 +186,32 @@ function nextPage() {
         currentPage++;
     }
 }
-
-
+console.log(userCategories)
 
 $: totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
+
 </script>
 
 <div>
-    <Modal size="lg" title="Založení nového požadavku" bind:open={requestModal} autoclose>
+    <Modal class="h-1/2" title={userNameAndSurname} bind:open={requestModal} autoclose>
         <div class="container">
             <!-- Main Section (2/3 width) -->
         <div class="main-section">
-            <Label for="request-name" class="mb-2">Název požadavku</Label>
-            <Input type="text" id="request-name" class="mb-1 focus:border-blue-700 focus:ring-blue-700" placeholder="Zadejte název požadavku" required />
-            <label for="request-description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Popis požadavku</label>
-            <textarea bind:value={test} id="request-description" rows="4" class="mb-1 block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Popište svůj požadavek"></textarea>
+            <Label>
+                Role
+                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={role} bind:value={userRole} placeholder="Vyberte roli"/>
+            </Label>
+            {#if userRole !== "bu"}
             <Label>
                 Kategorie
-                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={categories} bind:value={selectedCategory} placeholder="Vyberte kategorii"/>
+                <MultiSelect class="mt-1 mb-64 focus:border-blue-700 focus:ring-blue-700" items={categories} bind:value={userCategories} />
             </Label>
-            <Label>
-                Priorita
-                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={priority} bind:value={selectedPriority} placeholder="Vyberte prioritu"/>
-            </Label>
-            <Label>
-                Stav
-                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={state} bind:value={selectedState} placeholder="Vyberte stav"/>
-            </Label>
+            {/if}
         </div>
         </div>
         <svelte:fragment slot="footer">
-            <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => alert('Zadání požadavku')}>Zadat</Button>
+            <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => alert('Zadání požadavku')}>Uložit</Button>
         </svelte:fragment>
 
     </Modal>
@@ -180,7 +229,7 @@ $: totalPages = Math.ceil(filteredItems.length / itemsPerPage);
                     </Button>
                     </div>
             </div>
-            <Table striped={true} class="xl:table-fixed w-full overflow-x-auto">
+            <Table striped={true} class="overflow-x-auto">
                 <TableHead>
                     <TableHeadCell><div class="flex items-center">UŽIVATEL <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
                     <TableHeadCell><div class="flex items-center">ROLE <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
@@ -189,7 +238,10 @@ $: totalPages = Math.ceil(filteredItems.length / itemsPerPage);
                 <TableBody >
                     {#each pageItems as person}
                     <TableBodyRow>
-                        <TableBodyCell class="cursor-pointer" on:click={() => (requestModal = true)}>{person.name}</TableBodyCell>
+                        <TableBodyCell class="cursor-pointer" on:click={() => {
+                               setCurrentUser(person.id)
+                               requestModal = true
+                        }}>{person.name}</TableBodyCell>
                         <TableBodyCell><p class={roleClass(person.role)}>{person.role}</p></TableBodyCell>
                         <TableBodyCell>
                             {#each person.categories as category}
