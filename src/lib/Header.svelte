@@ -3,6 +3,7 @@
     import {ArrowLeftToBracketOutline, CogSolid, EnvelopeSolid, UserSolid} from "flowbite-svelte-icons";
     import {navigate} from "svelte-routing";
 
+
     function logout(){
         localStorage.removeItem("jwt")
         navigate("/")
@@ -16,13 +17,13 @@
 
         <div class="flex-1"></div>
 
-        <div class="flex-1 text-center">
-            <h1 class="text-xl">Helpdesk</h1>
+        <div  class="cursor-pointer flex-1 text-center">
+            <h1 on:click={() => navigate("/requests")} class="text-xl">Helpdesk</h1>
         </div>
 
         <div class="flex-1 flex justify-end space-x-2">
             {#if localStorage.getItem("jwt") !== null}
-            <Button size="xs" class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><CogSolid size="sm" /></Button>
+            <Button size="xs" on:click={() => navigate("/settings")} class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><CogSolid size="sm" /></Button>
             <Button size="sm" class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><UserSolid class=mr-1 size="sm" />Jan Hradecký</Button>
             <Button on:click={logout} size="sm" class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><ArrowLeftToBracketOutline class=mr-2 size="sm" />Odhlásit se</Button>
             {/if}

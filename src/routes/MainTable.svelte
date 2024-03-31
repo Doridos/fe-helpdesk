@@ -21,6 +21,14 @@ import {
 
 let requestModal = false;
 
+let comments = [
+    { author: 'John Doe', time: '2 hours ago', content: 'This is a sample comment.' },
+    { author: 'Jane Smith', time: '1 hour ago', content: 'Another sample comment.' },
+    { author: 'Alice Johnson', time: '30 minutes ago', content: 'Yet another sample comment. Yet another sample comment. Yet another sample comment. Yet another sample comment.' },
+    { author: 'Alice Johnson', time: '30 minutes ago', content: 'Yet another sample comment. Yet another sample comment. Yet another sample comment. Yet another sample comment.' },
+    { author: 'Alice Johnson', time: '30 minutes ago', content: 'Yet another sample comment. Yet another sample comment. Yet another sample comment. Yet another sample comment.' }
+];
+
 let searchTerm = ''
 const requests = [
     {
@@ -85,6 +93,7 @@ const requests = [
     },
 ];
 $: filteredItems = requests.filter((request) => request.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1);
+$: pageItems = filteredItems.slice((currentPage - 1) * itemsPerPage, (currentPage - 1) * itemsPerPage + itemsPerPage);
 
 function stateClass(state) {
     switch (state) {
@@ -136,6 +145,7 @@ let priority = [
 ];
 
 let selectedState = "us"
+let selectedTypeOfRequests
 let state = [
     { value: 'us', name: 'Nový' },
     { value: 'ca', name: 'V řešení' },
@@ -143,31 +153,81 @@ let state = [
     { value: 'fr', name: 'Neplatný' },
 ];
 
+
+let typeOfRequests = [
+    { value: 'us', name: 'Mé zadané požadavky' },
+    { value: 'ca', name: 'Požadavky, které řeším' },
+    { value: 'fr', name: 'Všechny požadavky' },
+];
+
 let test
+
+let currentPage = 1;
+const itemsPerPage = 3;
+
+function setPage(page) {
+    currentPage = page;
+}
+
+function prevPage() {
+    if (currentPage > 1) {
+        currentPage--;
+    }
+}
+
+function nextPage() {
+    if (currentPage < totalPages) {
+        currentPage++;
+    }
+}
+
+
+$: totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
 </script>
 
 <div>
-    <Modal title="Založení nového požadavku" bind:open={requestModal} autoclose>
-        <Label for="request-name" class="mb-2">Název požadavku</Label>
-        <Input type="text" id="request-name" class="focus:border-blue-700 focus:ring-blue-700" placeholder="Zadejte název požadavku" required />
-        <label for="request-description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Popis požadavku</label>
-        <textarea bind:value={test} id="request-description" rows="4" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Popište svůj požadavek"></textarea>
-        <Label>
-            Kategorie
-            <Select class="mt-2 focus:border-blue-700 focus:ring-blue-700" items={categories} bind:value={selectedCategory} placeholder="Vyberte kategorii"/>
-        </Label>
-        <Label>
-            Priorita
-            <Select class="mt-2 focus:border-blue-700 focus:ring-blue-700" items={priority} bind:value={selectedPriority} placeholder="Vyberte prioritu"/>
-        </Label>
-        <Label>
-            Stav
-            <Select class="mt-2 focus:border-blue-700 focus:ring-blue-700" items={state} bind:value={selectedState} placeholder="Vyberte stav"/>
-        </Label>
+    <Modal size="lg" title="Založení nového požadavku" bind:open={requestModal} autoclose>
+        <div class="container">
+            <!-- Main Section (2/3 width) -->
+        <div class="main-section">
+            <Label for="request-name" class="mb-2">Název požadavku</Label>
+            <Input type="text" id="request-name" class="mb-1 focus:border-blue-700 focus:ring-blue-700" placeholder="Zadejte název požadavku" required />
+            <label for="request-description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Popis požadavku</label>
+            <textarea bind:value={test} id="request-description" rows="4" class="mb-1 block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Popište svůj požadavek"></textarea>
+            <Label>
+                Kategorie
+                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={categories} bind:value={selectedCategory} placeholder="Vyberte kategorii"/>
+            </Label>
+            <Label>
+                Priorita
+                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={priority} bind:value={selectedPriority} placeholder="Vyberte prioritu"/>
+            </Label>
+            <Label>
+                Stav
+                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={state} bind:value={selectedState} placeholder="Vyberte stav"/>
+            </Label>
+        </div>
+        <div class="comment-section">
+            <h3>Komentáře</h3>
+            <!-- Display sample comments -->
+            {#each comments as comment}
+                <div class="comment">
+                    <p class="author">{comment.author+" "}<span class="time"> {comment.time}</span> </p>
+                    <p>{comment.content}</p>
+                </div>
+            {/each}
+            <Textarea class="mt-auto" rows="1" placeholder="Napište komentář">
+                <div slot="footer" class="flex items-center justify-between">
+                  <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" type="submit">Odeslat komentář</Button>
+                </div>
+          </Textarea>
+        </div>
+        </div>
         <svelte:fragment slot="footer">
             <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => alert('Zadání požadavku')}>Zadat</Button>
         </svelte:fragment>
+
     </Modal>
     <Header ></Header>
     <div class="page-background">
@@ -176,7 +236,9 @@ let test
                 <Button on:click={() => (requestModal = true)} size="sm" class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0"><CirclePlusSolid class="mr-1" size="sm" />Založit požadavek</Button>
 
 
-                <div class="flex w-1/5">
+                <div class="flex w-1/3">
+                    <Select class="w-1/2 focus:border-blue-700 focus:ring-blue-700 mr-3" items={typeOfRequests} bind:value={selectedTypeOfRequests} placeholder="Vyberte pohled"/>
+
                     <Search size="md" class="rounded-none py-2.5 focus:border-blue-700 focus:ring-blue-700 focus:ring-opacity-5" placeholder="Vyhledat požadavek" bind:value={searchTerm} />
                     <Button class="p-2.5 rounded-s-none bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0">
                         <SearchOutline class="w-5 h-5 " />
@@ -195,7 +257,7 @@ let test
                     <TableHeadCell><div class="flex items-center">DATUM DOKONČENÍ <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
                 </TableHead>
                 <TableBody >
-                    {#each filteredItems as request}
+                    {#each pageItems as request}
                     <TableBodyRow>
                         <TableBodyCell>{request.name}</TableBodyCell>
                         <TableBodyCell>{request.description}</TableBodyCell>
@@ -209,16 +271,60 @@ let test
                     {/each}
                 </TableBody>
             </Table>
+            <div class="pagination">
+                <button on:click={prevPage}>Zpět</button>
+                {#each Array.from({ length: totalPages }, (_, i) => i + 1) as page}
+                    <button
+                            class:active={currentPage === page}
+                            on:click={() => setPage(page)}
+                    >
+                        {page}
+                    </button>
+                {/each}
+                <button on:click={nextPage}>Další</button>
+            </div>
         </div>
     </div>
 </div>
 
 <style>
-    .custom-textarea:focus{
-        --tw-ring-color: var(--ring-blue-700) !important;
-        --tw-border-opacity: 1 !important;
-        border-color: rgb(26 86 219 / var(--tw-border-opacity)) !important;
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        list-style: none;
+        padding: 0;
+        margin-top: 20px;
     }
+
+    .pagination li {
+        margin: 0 5px;
+    }
+
+    .pagination button {
+        padding: 5px 10px;
+        border: 1px solid #ccc;
+        background-color: #fff;
+        cursor: pointer;
+    }
+
+    .pagination button.active {
+        background-color: #c0c0c0;
+    }
+    .pagination button:hover {
+        background-color: #ececec;
+    }
+
+    .pagination button:first-child {
+        border-top-left-radius: 5px;
+        border-bottom-left-radius: 5px;
+    }
+
+    .pagination button:last-child {
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+    }
+
     .page-background{
         background-color: #f1f1f1;
         display: flex;
@@ -232,5 +338,38 @@ let test
         background-color: white;
         border-radius: 7px;
         height: 94vh;
+    }
+
+    .comment {
+        margin-bottom: 10px;
+        font-size: 15px;
+    }
+
+    .author {
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    .time {
+        font-size: 0.7em;
+        color: #888;
+    }
+
+    .container {
+        display: flex;
+        flex-direction: row;
+    }
+
+    .main-section {
+        flex: 2;
+        padding-right: 20px; /* Add padding for spacing */
+    }
+
+    .comment-section {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        border-left: 1px solid #ccc; /* Add border to separate main and comment sections */
+        padding-left: 20px; /* Add padding for spacing */
     }
 </style>
