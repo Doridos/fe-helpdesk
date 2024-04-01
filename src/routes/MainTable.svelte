@@ -38,7 +38,8 @@ let requests = [
         state: "Vyřešen",
         category: "Intranet",
         priority: "Nízká",
-        dateOfAnnouncement: "15.01.2024",
+        dateOfAnnouncement: "01.01.2024",
+        assignedBy: "Jiří Dobrý",
         assignedTo: "Jan Novák",
         dateOfCompletion: "12.02.2024"
     },
@@ -49,7 +50,8 @@ let requests = [
         state: "Nový",
         category: "Software",
         priority: "Nízká",
-        dateOfAnnouncement: "15.01.2024",
+        dateOfAnnouncement: "02.01.2024",
+        assignedBy: "Jiří Dobrý",
         assignedTo: "Jan Novák",
         dateOfCompletion: "12.02.2024"
     },
@@ -60,7 +62,8 @@ let requests = [
         state: "Neplatný",
         category: "Majetek",
         priority: "Vysoká",
-        dateOfAnnouncement: "15.01.2024",
+        dateOfAnnouncement: "03.01.2024",
+        assignedBy: "Jiří Dobrý",
         assignedTo: "Jan Novák",
         dateOfCompletion: "12.02.2024"
     },
@@ -71,7 +74,8 @@ let requests = [
         state: "V řešení",
         category: "Hardware",
         priority: "Kritická",
-        dateOfAnnouncement: "15.01.2024",
+        dateOfAnnouncement: "04.01.2024",
+        assignedBy: "Jiří Dobrý",
         assignedTo: "Jan Novák",
         dateOfCompletion: "12.02.2024"
     },
@@ -82,7 +86,8 @@ let requests = [
         state: "V řešení",
         category: "Hardware",
         priority: "Kritická",
-        dateOfAnnouncement: "15.01.2024",
+        dateOfAnnouncement: "05.01.2024",
+        assignedBy: "Jiří Dobrý",
         assignedTo: "Jan Novák",
         dateOfCompletion: "12.02.2024"
     },
@@ -93,7 +98,8 @@ let requests = [
         state: "Neplatný",
         category: "Intranet",
         priority: "Kritická",
-        dateOfAnnouncement: "15.01.2024",
+        dateOfAnnouncement: "06.01.2024",
+        assignedBy: "Jiří Dobrý",
         assignedTo: "Jan Novák",
         dateOfCompletion: "12.02.2024"
     },
@@ -104,7 +110,8 @@ let requests = [
         state: "Neplatný",
         category: "Intranet",
         priority: "Kritická",
-        dateOfAnnouncement: "15.01.2024",
+        dateOfAnnouncement: "07.01.2024",
+        assignedBy: "Jiří Dobrý",
         assignedTo: "Jan Novák",
         dateOfCompletion: "12.02.2024"
     },
@@ -115,7 +122,8 @@ let requests = [
         state: "Neplatný",
         category: "Jiné",
         priority: "Nízká",
-        dateOfAnnouncement: "15.01.2024",
+        dateOfAnnouncement: "08.01.2024",
+        assignedBy: "Jiří Dobrý",
         assignedTo: "Jan Novák",
         dateOfCompletion: "12.02.2024"
     },
@@ -126,16 +134,111 @@ let requests = [
         state: "Neplatný",
         category: "Jiné",
         priority: "Nízká",
-        dateOfAnnouncement: "15.01.2024",
+        dateOfAnnouncement: "09.01.2024",
+        assignedBy: "Jiří Dobrý",
         assignedTo: "Jan Novák",
         dateOfCompletion: "12.02.2024"
     },
 ];
-let filtersByState = {
-    "Nový": true,
-    "V řešení": true,
-    "Vyřešen": true,
-    "Neplatný": true,
+
+let solvers = [
+    { value: 'user1', name: 'Jan Novák' },
+    { value: 'user1', name: 'David Modrý' }
+]
+
+let requestName = ""
+let requestDescription
+let requestState
+let requestCategory
+let requestPriority
+let requestAssignedBy
+let requestAssignedTo
+let requestDateOfAnnouncement
+let requestDateOfCompletion
+
+function newRequest() {
+    requestModal = true
+    requestName = ""
+    requestDescription = ""
+    requestState = "New"
+    requestCategory = ""
+    requestPriority = ""
+    requestAssignedBy = ""
+    requestAssignedTo = ""
+    requestDateOfAnnouncement = ""
+    requestDateOfCompletion = ""
+}
+function setCurrentRequest(id){
+    let requestToSet = requests.find(request => request.id === id)
+    requestName = requestToSet.name
+    requestDescription = requestToSet.description
+    switch (requestToSet.category){
+        case "Intranet":
+            requestCategory = 'it'
+            break
+        case "Software":
+            requestCategory = 'sw'
+            break
+        case "Majetek":
+            requestCategory = 'pr'
+            break
+        case "Hardware":
+            requestCategory = 'hw'
+            break
+        case "Oprávnění":
+            requestCategory = 'rg'
+            break
+        case "Jiné":
+            requestCategory = 'ot'
+            break
+        default:
+            requestCategory = 'it'
+            break
+    }
+    switch (requestToSet.priority){
+        case "Nízká":
+            requestPriority = 'Low'
+            break
+        case "Střední":
+            requestPriority = 'Medium'
+            break
+        case "Vysoká":
+            requestPriority = 'High'
+            break
+        case "Kritická":
+            requestPriority = 'Critical'
+            break
+        default:
+            requestPriority = 'Low'
+            break
+    }
+    switch (requestToSet.state){
+        case "Nový":
+            requestState = 'New'
+            break
+        case "V řešení":
+            requestState = 'In progress'
+            break
+        case "Vyřešen":
+            requestState = 'Solved'
+            break
+        case "Neplatný":
+            requestState = 'Invalid'
+            break
+        default:
+            requestPriority = 'New'
+            break
+    }
+
+
+    requestDateOfAnnouncement = requestToSet.dateOfAnnouncement
+    requestDateOfCompletion = requestToSet.dateOfCompletion
+    requestAssignedBy = requestToSet.assignedBy
+
+    if (requestToSet.assignedTo = "Jan Novák"){
+        requestAssignedTo = "user1"
+    }
+
 }
 
 
@@ -172,30 +275,51 @@ function categoryClass(state) {
 }
 let selectedCategory
 let categories = [
-    { value: 'us', name: 'Intranet' },
-    { value: 'ca', name: 'Software' },
-    { value: 'fr', name: 'Majetek' },
-    { value: 'fr', name: 'Hardware' },
-    { value: 'fr', name: 'Oprávnění' },
-    { value: 'fr', name: 'Jiné' }
+    { value: 'it', name: 'Intranet' },
+    { value: 'sw', name: 'Software' },
+    { value: 'pr', name: 'Majetek' },
+    { value: 'hw', name: 'Hardware' },
+    { value: 'rg', name: 'Oprávnění' },
+    { value: 'ot', name: 'Jiné' }
 ];
+let filtersByCategory = {
+    "Intranet": true,
+    "Software": true,
+    "Majetek": true,
+    "Hardware": true,
+    "Oprávnění": true,
+    "Jiné": true
+}
 
 let selectedPriority
 let priority = [
-    { value: 'us', name: 'Nízká' },
-    { value: 'ca', name: 'Střední' },
-    { value: 'fr', name: 'Vysoká' },
-    { value: 'fr', name: 'Kritická' },
+    { value: 'Low', name: 'Nízká' },
+    { value: 'Medium', name: 'Střední' },
+    { value: 'High', name: 'Vysoká' },
+    { value: 'Critical', name: 'Kritická' },
 ];
+let filtersByPriority = {
+    "Nízká": true,
+    "Střední": true,
+    "Vysoká": true,
+    "Kritická": true,
+}
 
-let selectedState = "us"
+let selectedState = "New"
 let selectedTypeOfRequests
 let state = [
-    { value: 'us', name: 'Nový' },
-    { value: 'ca', name: 'V řešení' },
-    { value: 'fr', name: 'Vyřešen' },
-    { value: 'fr', name: 'Neplatný' },
+    { value: 'New', name: 'Nový' },
+    { value: 'In progress', name: 'V řešení' },
+    { value: 'Solved', name: 'Vyřešen' },
+    { value: 'Invalid', name: 'Neplatný' },
 ];
+let filtersByState = {
+    "Nový": true,
+    "V řešení": true,
+    "Vyřešen": true,
+    "Neplatný": true,
+}
+
 
 
 let typeOfRequests = [
@@ -246,61 +370,93 @@ function sortItems() {
 }
 
 
-function resetFilter(){
+function resetSort(){
     filterActive = false
     stateDropdownActive = false
+    categoryDropdownActive = false
+    priorityDropdownActive = false
+    idSort = false
+
     sortDirection = 'asc'
     sortBy = 'id'
     filterActive = false
     sortItems()
 }
 
-$: filteredItems = requests.filter((request) => request.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1 && filtersByState[request.state]);
+let sortByIdAsc = true
+
+$: filteredItems = requests.filter((request) => request.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1 && filtersByState[request.state] && filtersByCategory[request.category]
+    && filtersByPriority[request.priority]);
 $: pageItems = filteredItems.slice((currentPage - 1) * itemsPerPage, (currentPage - 1) * itemsPerPage + itemsPerPage)
 $: totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 let stateDropdownActive = false
+let categoryDropdownActive = false
+let priorityDropdownActive = false
+let idSort = false
+$: title = requestName ? requestName : "Založení nového požadavku";
 </script>
 
 <div>
-    <Modal size="lg" title="Založení nového požadavku" bind:open={requestModal} autoclose>
+    <Modal size="lg" {title} bind:open={requestModal} autoclose>
         <div class="container">
             <!-- Main Section (2/3 width) -->
         <div class="main-section">
+            {#if requestName === ""}
             <Label for="request-name" class="mb-2">Název požadavku</Label>
             <Input type="text" id="request-name" class="mb-1 focus:border-blue-700 focus:ring-blue-700" placeholder="Zadejte název požadavku" required />
+            {/if}
             <label for="request-description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Popis požadavku</label>
-            <textarea bind:value={test} id="request-description" rows="4" class="mb-1 block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Popište svůj požadavek"></textarea>
+            <textarea bind:value={requestDescription} id="request-description" rows="4" class="mb-1 block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Popište svůj požadavek"></textarea>
             <Label>
                 Kategorie
-                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={categories} bind:value={selectedCategory} placeholder="Vyberte kategorii"/>
+                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={categories} bind:value={requestCategory} placeholder="Vyberte kategorii"/>
             </Label>
             <Label>
                 Priorita
-                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={priority} bind:value={selectedPriority} placeholder="Vyberte prioritu"/>
+                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={priority} bind:value={requestPriority} placeholder="Vyberte prioritu"/>
             </Label>
             <Label>
                 Stav
-                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={state} bind:value={selectedState} placeholder="Vyberte stav"/>
+                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={state} bind:value={requestState} placeholder="Vyberte stav"/>
             </Label>
+            {#if requestAssignedBy}
+                <Label for="assigned-by" class="mb-2">Požadavek založil/a</Label>
+                <Input type="text" id="assigned-by" class="mb-1 focus:border-blue-700 focus:ring-blue-700" disabled bind:value={requestAssignedBy}/>
+            <Label>
+                Přiřazený řešitel
+                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={solvers} bind:value={requestAssignedTo} placeholder="Zvolte přiřazeného řešitele"/>
+            </Label>
+            <Label for="date-of-announcement" class="mb-2">Datum ohlášení</Label>
+            <Input type="text" id="date-of-announcement" class="mb-1 focus:border-blue-700 focus:ring-blue-700" disabled bind:value={requestDateOfAnnouncement}/>
+            <Label for="date-of-completion" class="mb-2">Datum dokončení</Label>
+            <Input type="date" id="date-of-completion" class="mb-1 focus:border-blue-700 focus:ring-blue-700" bind:value={requestDateOfCompletion}/>
+            {/if}
         </div>
-        <div class="comment-section">
-            <h3>Komentáře</h3>
-            <!-- Display sample comments -->
-            {#each comments as comment}
-                <div class="comment">
-                    <p class="author">{comment.author+" "}<span class="time"> {comment.time}</span> </p>
-                    <p>{comment.content}</p>
+            {#if requestAssignedBy}
+                <div class="comment-section">
+                    <h3>Komentáře</h3>
+                    <!-- Display sample comments -->
+                    {#each comments as comment}
+                        <div class="comment">
+                            <p class="author">{comment.author+" "}<span class="time"> {comment.time}</span> </p>
+                            <p>{comment.content}</p>
+                        </div>
+                    {/each}
+
+                    <Textarea class="mt-auto" rows="1" placeholder="Napište komentář">
+                        <div slot="footer" class="flex items-center justify-between">
+                          <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" type="submit">Odeslat komentář</Button>
+                        </div>
+                  </Textarea>
                 </div>
-            {/each}
-            <Textarea class="mt-auto" rows="1" placeholder="Napište komentář">
-                <div slot="footer" class="flex items-center justify-between">
-                  <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" type="submit">Odeslat komentář</Button>
-                </div>
-          </Textarea>
-        </div>
+            {/if}
         </div>
         <svelte:fragment slot="footer">
-            <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => alert('Zadání požadavku')}>Zadat</Button>
+            {#if requestAssignedBy}
+                <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => alert('Zadání požadavku')}>Změnit</Button>
+            {:else}
+                <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => alert('Zadání požadavku')}>Zadat</Button>
+            {/if}
         </svelte:fragment>
 
     </Modal>
@@ -309,9 +465,9 @@ let stateDropdownActive = false
         <div class="page-content mt-[25]">
             <div class="flex justify-between items-center p-4">
                 <div class="flex w-1/3">
-                <Button on:click={() => (requestModal = true)} size="sm" class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0"><CirclePlusSolid class="mr-1" size="sm" />Založit požadavek</Button>
+                <Button on:click={newRequest} size="sm" class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0"><CirclePlusSolid class="mr-1" size="sm" />Založit požadavek</Button>
                 {#if filterActive}
-                <Button on:click={resetFilter} size="sm" class="ml-2 bg-transparent text-gray-600 hover:bg-transparent hover:text-gray-800 focus-within:ring-opacity-0"><CloseCircleSolid class="mr-1" size="sm" />Zrušit filtr</Button>
+                <Button on:click={resetSort} size="sm" class="ml-2 bg-transparent text-gray-600 hover:bg-transparent hover:text-gray-800 focus-within:ring-opacity-0"><CloseCircleSolid class="mr-1" size="sm" />Zrušit řazení</Button>
                 {/if}
                 </div>
 
@@ -326,8 +482,8 @@ let stateDropdownActive = false
             </div>
             <Table striped={true} divClass="min-height" class="xl:table-fixed w-full h-1/2 overflow-x-auto">
                 <TableHead>
-                    <TableHeadCell><div class="flex items-center">POŽADAVEK <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
-                    <TableHeadCell><div class="flex items-center">POPIS POŽADAVKU <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
+                    <TableHeadCell><div class="flex items-center">POŽADAVEK</div></TableHeadCell>
+                    <TableHeadCell><div class="flex items-center">POPIS POŽADAVKU </div></TableHeadCell>
                     <TableHeadCell><div class="{sortBy === 'state' ? 'text-orange-500' : ''} flex items-center hover:cursor-pointer" on:click={() => {stateDropdownActive = !stateDropdownActive
                     }}>STAV
                         {#if !stateDropdownActive}
@@ -338,12 +494,24 @@ let stateDropdownActive = false
                     </div>
                         <Dropdown>
                             <DropdownItem on:click={() => {
+                                //Gui chevron changes
+                                categoryDropdownActive = false
+                                priorityDropdownActive = false
+                                idSort = false
+                                sortByIdAsc = true
+                                //End chevron changes
                                 filterActive = true
                                 sortBy = 'state';
                                 sortDirection = 'asc'
                                 sortItems()
                             }}>Vzestupně</DropdownItem>
                             <DropdownItem on:click={() => {
+                                 //Gui chevron changes
+                                categoryDropdownActive = false
+                                priorityDropdownActive = false
+                                idSort = false
+                                sortByIdAsc = true
+                                //End chevron changes
                                 filterActive = true
                                 sortBy = 'state';
                                 sortDirection = 'desc'
@@ -356,18 +524,111 @@ let stateDropdownActive = false
                             <DropdownItem><Checkbox bind:checked={filtersByState.Vyřešen}>Vyřešen</Checkbox></DropdownItem>
 
                         </Dropdown></TableHeadCell>
-                    <TableHeadCell><div class="flex items-center">KATEGORIE <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
-                    <TableHeadCell><div class="flex items-center">PRIORITA <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
-                    <TableHeadCell><div class="flex items-center">DATUM OHLÁŠENÍ <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
-                    <TableHeadCell><div class="flex items-center">PŘIŘAZENO KOMU <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
-                    <TableHeadCell><div class="flex items-center">DATUM DOKONČENÍ <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" /></div></TableHeadCell>
+                    <TableHeadCell><div class="{sortBy === 'category' ? 'text-orange-500' : ''} flex items-center hover:cursor-pointer" on:click={() => {categoryDropdownActive = !categoryDropdownActive}}>KATEGORIE
+                        {#if !categoryDropdownActive}
+                        <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" />
+                        {:else}
+                            <ChevronUpOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" />
+                        {/if}
+                        </div>
+                        <Dropdown>
+                            <DropdownItem on:click={() => {
+                                //Gui chevron changes
+                                stateDropdownActive = false
+                                priorityDropdownActive = false
+                                idSort = false
+                                sortByIdAsc = true
+                                //End chevron changes
+                                filterActive = true
+                                sortBy = 'category';
+                                sortDirection = 'asc'
+                                sortItems()
+                            }}>Vzestupně</DropdownItem>
+                            <DropdownItem on:click={() => {
+                                //Gui chevron changes
+                                stateDropdownActive = false
+                                priorityDropdownActive = false
+                                idSort = false
+                                sortByIdAsc = true
+                                //End chevron changes
+                                filterActive = true
+                                sortBy = 'category';
+                                sortDirection = 'desc'
+                            sortItems()
+                        }}>Sestupně</DropdownItem>
+                            <DropdownDivider />
+                            <DropdownItem><Checkbox bind:checked={filtersByCategory.Intranet}>Intranet</Checkbox></DropdownItem>
+                            <DropdownItem><Checkbox bind:checked={filtersByCategory.Software}>Software</Checkbox></DropdownItem>
+                            <DropdownItem><Checkbox bind:checked={filtersByCategory.Majetek}>Majetek</Checkbox></DropdownItem>
+                            <DropdownItem><Checkbox bind:checked={filtersByCategory.Hardware}>Hardware</Checkbox></DropdownItem>
+                            <DropdownItem><Checkbox bind:checked={filtersByCategory.Oprávnění}>Oprávnění</Checkbox></DropdownItem>
+                            <DropdownItem><Checkbox bind:checked={filtersByCategory.Jiné}>Jiné</Checkbox></DropdownItem>
+
+                        </Dropdown></TableHeadCell>
+                    <TableHeadCell><div class="{sortBy === 'priority' ? 'text-orange-500' : ''} flex items-center hover:cursor-pointer" on:click={() => {priorityDropdownActive = !priorityDropdownActive}}>PRIORITA
+                        {#if !priorityDropdownActive}
+                            <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" />
+                        {:else}
+                            <ChevronUpOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" />
+                        {/if}
+                        </div>
+                        <Dropdown>
+                            <DropdownItem on:click={() => {
+                                //Gui chevron changes
+                                stateDropdownActive = false
+                                categoryDropdownActive = false
+                                idSort = false
+                                sortByIdAsc = true
+                                //End chevron changes
+                                filterActive = true
+                                sortBy = 'priority';
+                                sortDirection = 'asc'
+                                sortItems()
+                            }}>Vzestupně</DropdownItem>
+                            <DropdownItem on:click={() => {
+                                //Gui chevron changes
+                                stateDropdownActive = false
+                                categoryDropdownActive = false
+                                idSort = false
+                                sortByIdAsc = true
+                                //End chevron changes
+                                filterActive = true
+                                sortBy = 'priority';
+                                sortDirection = 'desc'
+                            sortItems()
+                        }}>Sestupně</DropdownItem>
+                            <DropdownDivider />
+                            <DropdownItem><Checkbox bind:checked={filtersByPriority.Nízká}>Nízká</Checkbox></DropdownItem>
+                            <DropdownItem><Checkbox bind:checked={filtersByPriority.Střední}>Střední</Checkbox></DropdownItem>
+                            <DropdownItem><Checkbox bind:checked={filtersByPriority.Vysoká}>Vysoká</Checkbox></DropdownItem>
+                            <DropdownItem><Checkbox bind:checked={filtersByPriority.Kritická}>Kritická</Checkbox></DropdownItem>
+
+                        </Dropdown></TableHeadCell>
+                    <TableHeadCell><div class="{idSort ? 'text-orange-500' : ''} flex items-center hover:cursor-pointer" on:click={ () => {
+                    filterActive = true
+                    idSort = true
+                    sortByIdAsc = !sortByIdAsc
+                    sortBy = 'id'
+                    sortByIdAsc ? sortDirection = "asc" : sortDirection = "desc"
+                    sortItems()
+                    }
+                    }>DATUM OHLÁŠENÍ
+                        {#if sortByIdAsc}
+                        <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1 " size="sm" />
+                    {:else}
+                        <ChevronUpOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" />
+                    {/if}</div></TableHeadCell>
+                    <TableHeadCell><div class="flex items-center">PŘIŘAZENO KOMU </div></TableHeadCell>
+                    <TableHeadCell><div class="flex items-center">DATUM DOKONČENÍ </div></TableHeadCell>
                 </TableHead>
                 {#if pageItems.length !== 0}
                 <TableBody >
 
                     {#each pageItems as request}
                     <TableBodyRow>
-                        <TableBodyCell>{request.name}</TableBodyCell>
+                        <TableBodyCell class="cursor-pointer" on:click={() => {
+                               setCurrentRequest(request.id)
+                               requestModal = true}}>{request.name}</TableBodyCell>
                         <TableBodyCell>{request.description}</TableBodyCell>
                         <TableBodyCell><p class={stateClass(request.state)}>{request.state}</p></TableBodyCell>
                         <TableBodyCell><p class={categoryClass(request.category)}>{request.category}</p></TableBodyCell>
