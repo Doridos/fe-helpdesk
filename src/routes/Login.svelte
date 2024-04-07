@@ -42,6 +42,7 @@
 
     }
     .form-container {
+        box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
         margin-top: 180px;
         background-color: white;
         max-width: 33%;
