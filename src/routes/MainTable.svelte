@@ -1,8 +1,9 @@
 <script>
 import Header from "../lib/Header.svelte";
+import { formatDateAndTime } from "../lib/utils.js";
 import {
     Button, Checkbox, Dropdown, DropdownDivider, DropdownItem, Input, Label,
-    Modal,
+    Modal, MultiSelect,
     Search, Select,
     Table,
     TableBody,
@@ -31,7 +32,39 @@ let comments = [
 ];
 let requests = []
 onMount(() => {
+    fetchRequests()
+});
+
+function fetchRequests(){
     fetch(import.meta.env.VITE_BE_URL+"/request/all", {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json(); // This returns a promise
+        })
+        .then(data => {
+            // Map the data right after it is received
+            requests = data.map(request => ({
+                ...request,
+                requestState: stateMapping[request.requestState],
+                requestCategory: categoryMapping[request.requestCategory],
+                requestPriority: priorityMapping[request.requestPriority]
+            }));
+            console.log(requests);
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+}
+
+function fetchRequestDetail(requestId) {
+    fetch(import.meta.env.VITE_BE_URL + "/request/"+ requestId, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -45,140 +78,20 @@ onMount(() => {
     })
     .then(data => {
         // Map the data right after it is received
-        requests = data.map(request => ({
-            ...request,
-            requestState: stateMapping[request.requestState],
-            requestCategory: categoryMapping[request.requestCategory],
-            requestPriority: priorityMapping[request.requestPriority]
-        }));
-        console.log(requests);
+        console.log(data);
     })
     .catch((error) => {
         console.error('Error:', error);
     });
-});
+}
 $: filteredItems = requests.filter((request) => request.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1 && filtersByState[request.requestState] && filtersByCategory[request.requestCategory]
     && filtersByPriority[request.requestPriority]);
 $: pageItems = filteredItems.slice((currentPage - 1) * itemsPerPage, (currentPage - 1) * itemsPerPage + itemsPerPage)
 $: totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
 let searchTerm = ''
-// let requests = [
-//     {
-//         id: 1,
-//         name: 'Výměna oznámení',
-//         description: "Prosím o výměnu oznámení",
-//         state: "Vyřešen",
-//         category: "Intranet",
-//         priority: "Nízká",
-//         dateOfAnnouncement: "01.01.2024",
-//         assignedBy: "Jiří Dobrý",
-//         assignedTo: "Jan Novák",
-//         dateOfCompletion: "12.02.2024"
-//     },
-//     {
-//         id: 2,
-//         name: "Problém s Teamsy",
-//         description: "Nejde zapnout teams",
-//         state: "Nový",
-//         category: "Software",
-//         priority: "Nízká",
-//         dateOfAnnouncement: "02.01.2024",
-//         assignedBy: "Jiří Dobrý",
-//         assignedTo: "Jan Novák",
-//         dateOfCompletion: "12.02.2024"
-//     },
-//     {
-//         id: 3,
-//         name: "Nabíječka na notebook",
-//         description: "Nabíječka nenabíjí",
-//         state: "Neplatný",
-//         category: "Majetek",
-//         priority: "Vysoká",
-//         dateOfAnnouncement: "03.01.2024",
-//         assignedBy: "Jiří Dobrý",
-//         assignedTo: "Jan Novák",
-//         dateOfCompletion: "12.02.2024"
-//     },
-//     {
-//         id: 4,
-//         name: "Rozbitý monitor",
-//         description: "Nefunguje monitor",
-//         state: "V řešení",
-//         category: "Hardware",
-//         priority: "Kritická",
-//         dateOfAnnouncement: "04.01.2024",
-//         assignedBy: "Jiří Dobrý",
-//         assignedTo: "Jan Novák",
-//         dateOfCompletion: "12.02.2024"
-//     },
-//     {
-//         id: 5,
-//         name: "Rozbitý monitor",
-//         description: "Nefunguje monitor",
-//         state: "V řešení",
-//         category: "Hardware",
-//         priority: "Kritická",
-//         dateOfAnnouncement: "05.01.2024",
-//         assignedBy: "Jiří Dobrý",
-//         assignedTo: "Jan Novák",
-//         dateOfCompletion: "12.02.2024"
-//     },
-//     {
-//         id: 6,
-//         name: "Přístup do emailu",
-//         description: "Prosím o přístup",
-//         state: "Neplatný",
-//         category: "Intranet",
-//         priority: "Kritická",
-//         dateOfAnnouncement: "06.01.2024",
-//         assignedBy: "Jiří Dobrý",
-//         assignedTo: "Jan Novák",
-//         dateOfCompletion: "12.02.2024"
-//     },
-//     {
-//         id: 7,
-//         name: "Přístup do emailu",
-//         description: "Prosím o přístup",
-//         state: "Neplatný",
-//         category: "Intranet",
-//         priority: "Kritická",
-//         dateOfAnnouncement: "07.01.2024",
-//         assignedBy: "Jiří Dobrý",
-//         assignedTo: "Jan Novák",
-//         dateOfCompletion: "12.02.2024"
-//     },
-//     {
-//         id: 8,
-//         name: "Rozbitý token",
-//         description: "Nefunguje mi token",
-//         state: "Neplatný",
-//         category: "Jiné",
-//         priority: "Nízká",
-//         dateOfAnnouncement: "08.01.2024",
-//         assignedBy: "Jiří Dobrý",
-//         assignedTo: "Jan Novák",
-//         dateOfCompletion: "12.02.2024"
-//     },
-//     {
-//         id: 9,
-//         name: "Rozbitý token",
-//         description: "Nefunguje mi token",
-//         state: "Neplatný",
-//         category: "Jiné",
-//         priority: "Nízká",
-//         dateOfAnnouncement: "09.01.2024",
-//         assignedBy: "Jiří Dobrý",
-//         assignedTo: "Jan Novák",
-//         dateOfCompletion: "12.02.2024"
-//     },
-// ];
-//
-// let solvers = [
-//     { value: 'user1', name: 'Jan Novák' },
-//     { value: 'user1', name: 'David Modrý' }
-// ]
 
+let requestId
 let requestName = ""
 let requestDescription
 let requestState
@@ -193,7 +106,7 @@ function newRequest() {
     requestModal = true
     requestName = ""
     requestDescription = ""
-    requestState = "New"
+    requestState = "NEW"
     requestCategory = ""
     requestPriority = ""
     requestAssignedBy = ""
@@ -203,9 +116,11 @@ function newRequest() {
 }
 function setCurrentRequest(id){
     let requestToSet = requests.find(request => request.id === id)
+    console.log(requestToSet)
+    requestId = requestToSet.id
     requestName = requestToSet.name
     requestDescription = requestToSet.description
-    switch (requestToSet.category){
+    switch (requestToSet.requestCategory){
         case "Intranet":
             requestCategory = 'INTRANET'
             break
@@ -228,7 +143,6 @@ function setCurrentRequest(id){
             requestCategory = 'INTRANET'
             break
     }
-    //TODO napojit rešitele a detail požadavku
     fetch(import.meta.env.VITE_BE_URL+"/employees/"+requestCategory, {
         method: 'GET',
         headers: {
@@ -243,56 +157,98 @@ function setCurrentRequest(id){
         })
         .then(data => {
             console.log(data);
+            solvers = data.map(solver => ({
+                value: solver.username,
+                name: solver.forename + " " + solver.surname
+            }));
+            requestAssignedTo = requestToSet.assignedTo.map(solver => solver.username)
+            console.log()
         })
         .catch((error) => {
             console.error('Error:', error);
         });
-    switch (requestToSet.priority){
+    switch (requestToSet.requestPriority){
+
         case "Nízká":
-            requestPriority = 'Low'
+            requestPriority = 'LOW'
             break
         case "Střední":
-            requestPriority = 'Medium'
+            requestPriority = 'MEDIUM'
             break
         case "Vysoká":
-            requestPriority = 'High'
+            requestPriority = 'HIGH'
+            console.log(requestPriority)
             break
         case "Kritická":
-            requestPriority = 'Critical'
+            requestPriority = 'CRITICAL'
+            console.log(requestPriority)
             break
         default:
-            requestPriority = 'Low'
+            requestPriority = 'LOW'
             break
     }
-    switch (requestToSet.state){
+    switch (requestToSet.requestState){
         case "Nový":
-            requestState = 'New'
+            requestState = 'NEW'
             break
         case "V řešení":
-            requestState = 'In progress'
+            requestState = 'IN_PROGRESS'
             break
         case "Vyřešen":
-            requestState = 'Solved'
+            requestState = 'SOLVED'
             break
         case "Neplatný":
-            requestState = 'Invalid'
+            requestState = 'INVALID'
             break
         default:
-            requestPriority = 'New'
+            requestState = 'NEW'
             break
     }
 
 
     requestDateOfAnnouncement = requestToSet.dateOfAnnouncement
     requestDateOfCompletion = requestToSet.dateOfCompletion
-    requestAssignedBy = requestToSet.assignedBy
+    requestAssignedBy = requestToSet.assignedBy.forename + " " + requestToSet.assignedBy.surname
 
-    if (requestToSet.assignedTo = "Jan Novák"){
-        requestAssignedTo = "user1"
-    }
 
 }
+function sendPutRequest(data) {
+    return fetch(import.meta.env.VITE_BE_URL+"/request/"+requestId, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+}
 
+
+function updateRequest(){
+const data = {
+    "name": requestName,
+    "description": requestDescription,
+    "dateOfAnnouncement": requestDateOfAnnouncement,
+    "dateOfCompletion": requestDateOfCompletion,
+    "assignedTo":  requestAssignedTo,
+    "requestState": requestState,
+    "requestCategory": requestCategory,
+    "requestPriority": requestPriority
+};
+    console.log(data)
+    sendPutRequest(data).then(() => {
+        fetchRequests();
+    });
+    console.log(requests)
+}
 
 function stateClass(state) {
     switch (state) {
@@ -327,12 +283,12 @@ function categoryClass(state) {
 }
 let selectedCategory
 let categories = [
-    { value: 'it', name: 'Intranet' },
-    { value: 'sw', name: 'Software' },
-    { value: 'pr', name: 'Majetek' },
-    { value: 'hw', name: 'Hardware' },
-    { value: 'rg', name: 'Oprávnění' },
-    { value: 'ot', name: 'Jiné' }
+    { value: 'INTRANET', name: 'Intranet' },
+    { value: 'SOFTWARE', name: 'Software' },
+    { value: 'PROPERTY', name: 'Majetek' },
+    { value: 'HARDWARE', name: 'Hardware' },
+    { value: 'PERMISSION', name: 'Oprávnění' },
+    { value: 'OTHER', name: 'Jiné' }
 ];
 let filtersByCategory = {
     "Intranet": true,
@@ -343,12 +299,11 @@ let filtersByCategory = {
     "Jiné": true
 }
 
-let selectedPriority
 let priority = [
-    { value: 'Low', name: 'Nízká' },
-    { value: 'Medium', name: 'Střední' },
-    { value: 'High', name: 'Vysoká' },
-    { value: 'Critical', name: 'Kritická' },
+    { value: 'LOW', name: 'Nízká' },
+    { value: 'MEDIUM', name: 'Střední' },
+    { value: 'HIGH', name: 'Vysoká' },
+    { value: 'CRITICAL', name: 'Kritická' },
 ];
 let filtersByPriority = {
     "Nízká": true,
@@ -357,13 +312,12 @@ let filtersByPriority = {
     "Kritická": true,
 }
 
-let selectedState = "New"
 let selectedTypeOfRequests
 let state = [
-    { value: 'New', name: 'Nový' },
-    { value: 'In progress', name: 'V řešení' },
-    { value: 'Solved', name: 'Vyřešen' },
-    { value: 'Invalid', name: 'Neplatný' },
+    { value: 'NEW', name: 'Nový' },
+    { value: 'IN_PROGRESS', name: 'V řešení' },
+    { value: 'SOLVED', name: 'Vyřešen' },
+    { value: 'INVALID', name: 'Neplatný' },
 ];
 let filtersByState = {
     "Nový": true,
@@ -457,19 +411,6 @@ function resetSort(){
     sortItems()
 }
 
-function formatDateAndTime(dateString) {
-    let date = new Date(dateString);
-
-    let day = date.getDate().toString().padStart(2, '0');
-    let month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are 0-based in JavaScript
-    let year = date.getFullYear();
-
-    let hours = date.getHours().toString().padStart(2, '0');
-    let minutes = date.getMinutes().toString().padStart(2, '0');
-
-    return `${day}.${month}.${year} ${hours}:${minutes}`;
-}
-
 
 let sortByIdAsc = true
 
@@ -509,12 +450,12 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                 <Input type="text" id="assigned-by" class="mb-1 focus:border-blue-700 focus:ring-blue-700" disabled bind:value={requestAssignedBy}/>
             <Label>
                 Přiřazený řešitel
-                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={solvers} bind:value={requestAssignedTo} placeholder="Zvolte přiřazeného řešitele"/>
+                <MultiSelect class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700 focus-within:border-blue-700 focus-within:ring-blue-700" items={solvers} bind:value={requestAssignedTo} placeholder="Zvolte přiřazeného řešitele"/>
             </Label>
             <Label for="date-of-announcement" class="mb-2">Datum ohlášení</Label>
-            <Input type="text" id="date-of-announcement" class="mb-1 focus:border-blue-700 focus:ring-blue-700" disabled bind:value={requestDateOfAnnouncement}/>
+            <Input type="datetime-local" id="date-of-announcement" class="mb-1 focus:border-blue-700 focus:ring-blue-700" disabled value={requestDateOfAnnouncement}/>
             <Label for="date-of-completion" class="mb-2">Datum dokončení</Label>
-            <Input type="date" id="date-of-completion" class="mb-1 focus:border-blue-700 focus:ring-blue-700" bind:value={requestDateOfCompletion}/>
+            <Input type="datetime-local" id="date-of-completion" class="mb-1 focus:border-blue-700 focus:ring-blue-700" bind:value={requestDateOfCompletion}/>
             {/if}
         </div>
             {#if requestAssignedBy}
@@ -538,7 +479,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
         </div>
         <svelte:fragment slot="footer">
             {#if requestAssignedBy}
-                <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => alert('Zadání požadavku')}>Změnit</Button>
+                <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => updateRequest()}>Změnit</Button>
             {:else}
                 <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => alert('Zadání požadavku')}>Zadat</Button>
             {/if}
@@ -703,7 +644,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                     {:else}
                         <ChevronUpOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" />
                     {/if}</div></TableHeadCell>
-                    <TableHeadCell><div class="flex items-center">PŘIŘAZENO KOMU </div></TableHeadCell>
+                    <TableHeadCell><div class="flex items-center">ŘEŠITEL/KA </div></TableHeadCell>
                     <TableHeadCell><div class="flex items-center">DATUM DOKONČENÍ </div></TableHeadCell>
                 </TableHead>
                 {#if pageItems.length !== 0}
@@ -719,7 +660,11 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                         <TableBodyCell><p class={categoryClass(request.requestCategory)}>{request.requestCategory}</p></TableBodyCell>
                         <TableBodyCell><p class={priorityClass(request.requestPriority)}>{request.requestPriority}</p></TableBodyCell>
                         <TableBodyCell>{formatDateAndTime(request.dateOfAnnouncement)}</TableBodyCell>
+                        {#if request.assignedTo.length > 0}
                         <TableBodyCell>{request.assignedTo[0].forename + " " +request.assignedTo[0].surname}</TableBodyCell>
+                        {:else}
+                        <TableBodyCell>Nepřiřazeno</TableBodyCell>
+                        {/if}
                         <TableBodyCell>{formatDateAndTime(request.dateOfCompletion)}</TableBodyCell>
                     </TableBodyRow>
                     {/each}
