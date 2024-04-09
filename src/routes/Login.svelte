@@ -6,6 +6,7 @@
     let username
     function login(){
         localStorage.setItem("jwt", username)
+        localStorage.setItem("username", "babyc")
         navigate("/requests")
     }
 </script>

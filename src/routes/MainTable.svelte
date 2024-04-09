@@ -92,7 +92,7 @@ $: totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 let searchTerm = ''
 
 let requestId
-let requestName = ""
+let requestName
 let requestDescription
 let requestState
 let requestCategory
@@ -206,12 +206,36 @@ function setCurrentRequest(id){
     }
 
 
-    requestDateOfAnnouncement = requestToSet.dateOfAnnouncement
+    requestDateOfAnnouncement = formatDateAndTime(requestToSet.dateOfAnnouncement)
     requestDateOfCompletion = requestToSet.dateOfCompletion
     requestAssignedBy = requestToSet.assignedBy.forename + " " + requestToSet.assignedBy.surname
 
 
 }
+function sendPostRequest() {
+    return fetch(import.meta.env.VITE_BE_URL+"/request/post", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            "name": requestName,
+            "description": requestDescription,
+            "dateOfAnnouncement": new Date().toISOString(),
+            "assignedBy":  localStorage.getItem("username"),
+            "requestState": "NEW",
+            "requestCategory": requestCategory,
+            "requestPriority": requestPriority
+        }),
+    })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+
+}
+
 function sendPutRequest(data) {
     return fetch(import.meta.env.VITE_BE_URL+"/request/"+requestId, {
         method: 'PUT',
@@ -221,9 +245,6 @@ function sendPutRequest(data) {
         body: JSON.stringify(data),
     })
         .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
             return response.json();
         })
         .catch((error) => {
@@ -231,12 +252,16 @@ function sendPutRequest(data) {
         });
 }
 
+function postRequest(){
+    sendPostRequest().then(() => {
+        fetchRequests();
+    });
+}
 
 function updateRequest(){
 const data = {
     "name": requestName,
     "description": requestDescription,
-    "dateOfAnnouncement": requestDateOfAnnouncement,
     "dateOfCompletion": requestDateOfCompletion,
     "assignedTo":  requestAssignedTo,
     "requestState": requestState,
@@ -427,9 +452,9 @@ $: title = requestName ? requestName : "Založení nového požadavku";
         <div class="container">
             <!-- Main Section (2/3 width) -->
         <div class="main-section">
-            {#if requestName === ""}
+            {#if requestAssignedBy === ""}
             <Label for="request-name" class="mb-2">Název požadavku</Label>
-            <Input type="text" id="request-name" class="mb-1 focus:border-blue-700 focus:ring-blue-700" placeholder="Zadejte název požadavku" required />
+            <Input type="text" id="request-name" class="mb-1 focus:border-blue-700 focus:ring-blue-700" bind:value={requestName} placeholder="Zadejte název požadavku" required />
             {/if}
             <label for="request-description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Popis požadavku</label>
             <textarea bind:value={requestDescription} id="request-description" rows="4" class="mb-1 block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Popište svůj požadavek"></textarea>
@@ -441,11 +466,11 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                 Priorita
                 <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={priority} bind:value={requestPriority} placeholder="Vyberte prioritu"/>
             </Label>
+            {#if requestAssignedBy}
             <Label>
                 Stav
                 <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={state} bind:value={requestState} placeholder="Vyberte stav"/>
             </Label>
-            {#if requestAssignedBy}
                 <Label for="assigned-by" class="mb-2">Požadavek založil/a</Label>
                 <Input type="text" id="assigned-by" class="mb-1 focus:border-blue-700 focus:ring-blue-700" disabled bind:value={requestAssignedBy}/>
             <Label>
@@ -453,7 +478,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                 <MultiSelect class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700 focus-within:border-blue-700 focus-within:ring-blue-700" items={solvers} bind:value={requestAssignedTo} placeholder="Zvolte přiřazeného řešitele"/>
             </Label>
             <Label for="date-of-announcement" class="mb-2">Datum ohlášení</Label>
-            <Input type="datetime-local" id="date-of-announcement" class="mb-1 focus:border-blue-700 focus:ring-blue-700" disabled value={requestDateOfAnnouncement}/>
+            <Input type="text" id="date-of-announcement" class="mb-1 focus:border-blue-700 focus:ring-blue-700" disabled value={requestDateOfAnnouncement}/>
             <Label for="date-of-completion" class="mb-2">Datum dokončení</Label>
             <Input type="datetime-local" id="date-of-completion" class="mb-1 focus:border-blue-700 focus:ring-blue-700" bind:value={requestDateOfCompletion}/>
             {/if}
@@ -481,7 +506,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
             {#if requestAssignedBy}
                 <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => updateRequest()}>Změnit</Button>
             {:else}
-                <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => alert('Zadání požadavku')}>Zadat</Button>
+                <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => postRequest()}>Zadat</Button>
             {/if}
         </svelte:fragment>
 
@@ -510,7 +535,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                 <TableHead>
                     <TableHeadCell><div class="flex items-center">POŽADAVEK</div></TableHeadCell>
                     <TableHeadCell><div class="flex items-center">POPIS POŽADAVKU </div></TableHeadCell>
-                    <TableHeadCell><div class="{sortBy === 'state' ? 'text-orange-500' : ''} flex items-center hover:cursor-pointer" on:click={() => {stateDropdownActive = !stateDropdownActive
+                    <TableHeadCell><div class="{sortBy === 'requestState' ? 'text-orange-500' : ''} flex items-center hover:cursor-pointer" on:click={() => {stateDropdownActive = !stateDropdownActive
                     }}>STAV
                         {#if !stateDropdownActive}
                         <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1 " size="sm" />
@@ -527,7 +552,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                                 sortByIdAsc = true
                                 //End chevron changes
                                 filterActive = true
-                                sortBy = 'state';
+                                sortBy = 'requestState';
                                 sortDirection = 'asc'
                                 sortItems()
                             }}>Vzestupně</DropdownItem>
@@ -539,7 +564,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                                 sortByIdAsc = true
                                 //End chevron changes
                                 filterActive = true
-                                sortBy = 'state';
+                                sortBy = 'requestState';
                                 sortDirection = 'desc'
                             sortItems()
                         }}>Sestupně</DropdownItem>
@@ -550,7 +575,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                             <DropdownItem><Checkbox bind:checked={filtersByState.Vyřešen}>Vyřešen</Checkbox></DropdownItem>
 
                         </Dropdown></TableHeadCell>
-                    <TableHeadCell><div class="{sortBy === 'category' ? 'text-orange-500' : ''} flex items-center hover:cursor-pointer" on:click={() => {categoryDropdownActive = !categoryDropdownActive}}>KATEGORIE
+                    <TableHeadCell><div class="{sortBy === 'requestCategory' ? 'text-orange-500' : ''} flex items-center hover:cursor-pointer" on:click={() => {categoryDropdownActive = !categoryDropdownActive}}>KATEGORIE
                         {#if !categoryDropdownActive}
                         <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" />
                         {:else}
@@ -566,7 +591,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                                 sortByIdAsc = true
                                 //End chevron changes
                                 filterActive = true
-                                sortBy = 'category';
+                                sortBy = 'requestCategory';
                                 sortDirection = 'asc'
                                 sortItems()
                             }}>Vzestupně</DropdownItem>
@@ -578,7 +603,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                                 sortByIdAsc = true
                                 //End chevron changes
                                 filterActive = true
-                                sortBy = 'category';
+                                sortBy = 'requestCategory';
                                 sortDirection = 'desc'
                             sortItems()
                         }}>Sestupně</DropdownItem>
@@ -591,7 +616,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                             <DropdownItem><Checkbox bind:checked={filtersByCategory.Jiné}>Jiné</Checkbox></DropdownItem>
 
                         </Dropdown></TableHeadCell>
-                    <TableHeadCell><div class="{sortBy === 'priority' ? 'text-orange-500' : ''} flex items-center hover:cursor-pointer" on:click={() => {priorityDropdownActive = !priorityDropdownActive}}>PRIORITA
+                    <TableHeadCell><div class="{sortBy === 'requestPriority' ? 'text-orange-500' : ''} flex items-center hover:cursor-pointer" on:click={() => {priorityDropdownActive = !priorityDropdownActive}}>PRIORITA
                         {#if !priorityDropdownActive}
                             <ChevronDownOutline class="mr-1 hover:cursor-pointer ml-1" size="sm" />
                         {:else}
@@ -607,7 +632,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                                 sortByIdAsc = true
                                 //End chevron changes
                                 filterActive = true
-                                sortBy = 'priority';
+                                sortBy = 'requestPriority';
                                 sortDirection = 'asc'
                                 sortItems()
                             }}>Vzestupně</DropdownItem>
@@ -619,7 +644,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                                 sortByIdAsc = true
                                 //End chevron changes
                                 filterActive = true
-                                sortBy = 'priority';
+                                sortBy = 'requestPriority';
                                 sortDirection = 'desc'
                             sortItems()
                         }}>Sestupně</DropdownItem>
@@ -665,7 +690,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                         {:else}
                         <TableBodyCell>Nepřiřazeno</TableBodyCell>
                         {/if}
-                        <TableBodyCell>{formatDateAndTime(request.dateOfCompletion)}</TableBodyCell>
+                        <TableBodyCell>{request.dateOfCompletion !== null ?formatDateAndTime(request.dateOfCompletion) : "" }</TableBodyCell>
                     </TableBodyRow>
                     {/each}
                 </TableBody>
