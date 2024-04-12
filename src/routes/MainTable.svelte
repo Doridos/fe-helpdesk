@@ -32,35 +32,103 @@ let comments = [
 ];
 let requests = []
 onMount(() => {
-    fetchRequests()
+    fetchRequests("/all").then(() => {
+        sortDirection = "desc"
+        sortItems()
+    });
+
 });
 
-function fetchRequests(){
-    fetch(import.meta.env.VITE_BE_URL+"/request/all", {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+function fetchRequests(requestType){
+    if(requestType === "/assigned/by/" || requestType === "/assigned/to/"){
+        requestType += localStorage.getItem("username")
+
+        return fetch(import.meta.env.VITE_BE_URL+"/request"+requestType, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json(); // This returns a promise
+            })
+            .then(data => {
+                // Map the data right after it is received
+                requests = data.map(request => ({
+                    ...request,
+                    requestState: stateMapping[request.requestState],
+                    requestCategory: categoryMapping[request.requestCategory],
+                    requestPriority: priorityMapping[request.requestPriority]
+                }));
+                console.log(requests);
+                return requests; // Return the requests
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+    else if(requestType === "/categories/"){
+        requestType = "/categories"
+        return fetch(import.meta.env.VITE_BE_URL+"/request"+requestType, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: localStorage.getItem("assignedCategories")
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json(); // This returns a promise
+            })
+            .then(data => {
+                // Map the data right after it is received
+                requests = data.map(request => ({
+                    ...request,
+                    requestState: stateMapping[request.requestState],
+                    requestCategory: categoryMapping[request.requestCategory],
+                    requestPriority: priorityMapping[request.requestPriority]
+                }));
+                console.log(requests);
+                return requests; // Return the requests
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+    else {
+        return fetch(import.meta.env.VITE_BE_URL+"/request"+requestType, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
             }
-            return response.json(); // This returns a promise
         })
-        .then(data => {
-            // Map the data right after it is received
-            requests = data.map(request => ({
-                ...request,
-                requestState: stateMapping[request.requestState],
-                requestCategory: categoryMapping[request.requestCategory],
-                requestPriority: priorityMapping[request.requestPriority]
-            }));
-            console.log(requests);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json(); // This returns a promise
+            })
+            .then(data => {
+                // Map the data right after it is received
+                requests = data.map(request => ({
+                    ...request,
+                    requestState: stateMapping[request.requestState],
+                    requestCategory: categoryMapping[request.requestCategory],
+                    requestPriority: priorityMapping[request.requestPriority]
+                }));
+                console.log(requests);
+                return requests; // Return the requests
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+
 }
 
 function fetchRequestDetail(requestId) {
@@ -254,7 +322,9 @@ function sendPutRequest(data) {
 
 function postRequest(){
     sendPostRequest().then(() => {
-        fetchRequests();
+        fetchRequests(selectedTypeOfRequests).then(() => {
+            sortItems()
+        });
     });
 }
 
@@ -270,7 +340,9 @@ const data = {
 };
     console.log(data)
     sendPutRequest(data).then(() => {
-        fetchRequests();
+        fetchRequests(selectedTypeOfRequests).then(() => {
+            sortItems()
+        });
     });
     console.log(requests)
 }
@@ -337,7 +409,20 @@ let filtersByPriority = {
     "Kritická": true,
 }
 
-let selectedTypeOfRequests
+let selectedTypeOfRequests = "/all"
+
+$: {
+    if (selectedTypeOfRequests) {
+        fetchRequests(selectedTypeOfRequests).then(() => {
+            sortItems()
+        });
+
+
+
+        // Do something with selectedRequestType
+        console.log(`Selected request type: ${selectedTypeOfRequests}`);
+    }
+}
 let state = [
     { value: 'NEW', name: 'Nový' },
     { value: 'IN_PROGRESS', name: 'V řešení' },
@@ -375,13 +460,12 @@ const priorityMapping = {
 
 
 let typeOfRequests = [
-    { value: 'us', name: 'Mé zadané požadavky' },
-    { value: 'ca', name: 'Požadavky, které řeším' },
-    { value: 'ba', name: 'Mé přiřazené kategorie' },
-    { value: 'fr', name: 'Všechny požadavky' },
+    { value: '/assigned/by/', name: 'Mé zadané požadavky' },
+    { value: '/assigned/to/', name: 'Požadavky, které řeším' },
+    { value: '/categories/', name: 'Mé přiřazené kategorie' },
+    { value: '/all', name: 'Všechny požadavky' },
 ];
 
-let test
 let filterActive = false
 let currentPage = 1;
 const itemsPerPage = 10;
@@ -437,7 +521,7 @@ function resetSort(){
 }
 
 
-let sortByIdAsc = true
+let sortByIdAsc = false
 
 
 let stateDropdownActive = false
@@ -523,7 +607,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                 </div>
 
                 <div class="flex w-1/3">
-                    <Select class="w-1/2 focus:border-blue-700 focus:ring-blue-700 mr-3" items={typeOfRequests} bind:value={selectedTypeOfRequests} placeholder="Vyberte pohled"/>
+                    <Select class="w-10/12 focus:border-blue-700 focus:ring-blue-700 mr-3" items={typeOfRequests} bind:value={selectedTypeOfRequests} placeholder="Vyberte pohled"/>
 
                     <Search size="md" class="rounded-none py-2.5 focus:border-blue-700 focus:ring-blue-700 focus:ring-opacity-5" placeholder="Vyhledat požadavek" bind:value={searchTerm} />
                     <Button class="p-2.5 rounded-s-none bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0">

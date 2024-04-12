@@ -7,6 +7,7 @@
     function login(){
         localStorage.setItem("jwt", username)
         localStorage.setItem("username", "babyc")
+        localStorage.setItem("assignedCategories", JSON.stringify(["INTRANET", "HARDWARE"]));
         navigate("/requests")
     }
 </script>
