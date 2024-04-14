@@ -21,15 +21,7 @@ import {
 } from "flowbite-svelte-icons";
 import {onMount} from "svelte";
 
-let requestModal = false;
-
-let comments = [
-    { author: 'John Doe', time: '2 hours ago', content: 'This is a sample comment.' },
-    { author: 'Jane Smith', time: '1 hour ago', content: 'Another sample comment.' },
-    { author: 'Alice Johnson', time: '30 minutes ago', content: 'Yet another sample comment. Yet another sample comment. Yet another sample comment. Yet another sample comment.' },
-    { author: 'Alice Johnson', time: '30 minutes ago', content: 'Yet another sample comment. Yet another sample comment. Yet another sample comment. Yet another sample comment.' },
-    { author: 'Alice Johnson', time: '30 minutes ago', content: 'Yet another sample comment. Yet another sample comment. Yet another sample comment. Yet another sample comment.' }
-];
+let requestModal
 let requests = []
 onMount(() => {
     fetchRequests("/all").then(() => {
@@ -130,27 +122,30 @@ function fetchRequests(requestType){
     }
 
 }
-
+let requestComments = []
+let commentToPost
 function fetchRequestDetail(requestId) {
-    fetch(import.meta.env.VITE_BE_URL + "/request/"+ requestId, {
+    return fetch(import.meta.env.VITE_BE_URL + "/request/"+ requestId, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
         },
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json(); // This returns a promise
-    })
-    .then(data => {
-        // Map the data right after it is received
-        console.log(data);
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json(); // This returns a promise
+        })
+        .then(data => {
+            // Map the data right after it is received
+            console.log(data);
+            requestComments = data.comments
+            return data
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
 }
 $: filteredItems = requests.filter((request) => request.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1 && filtersByState[request.requestState] && filtersByCategory[request.requestCategory]
     && filtersByPriority[request.requestPriority]);
@@ -188,6 +183,7 @@ function setCurrentRequest(id){
     requestId = requestToSet.id
     requestName = requestToSet.name
     requestDescription = requestToSet.description
+    requestComments = requestToSet.comments
     switch (requestToSet.requestCategory){
         case "Intranet":
             requestCategory = 'INTRANET'
@@ -304,6 +300,27 @@ function sendPostRequest() {
 
 }
 
+function sendPostComment() {
+    return fetch(import.meta.env.VITE_BE_URL+"/comment", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            "content": commentToPost,
+            "dateOfComment": new Date().toISOString(),
+            "authorUsername": localStorage.getItem("username"),
+            "requestId": requestId
+        }),
+    })
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+
+}
+
 function sendPutRequest(data) {
     return fetch(import.meta.env.VITE_BE_URL+"/request/"+requestId, {
         method: 'PUT',
@@ -324,8 +341,19 @@ function postRequest(){
     sendPostRequest().then(() => {
         fetchRequests(selectedTypeOfRequests).then(() => {
             sortItems()
+            requestModal = false
         });
     });
+}
+
+function postComment(){
+    console.log("aaa")
+    sendPostComment().then(() => {
+        fetchRequestDetail(requestId).then(() => {
+            requestModal = true
+        });
+    });
+    commentToPost = null
 }
 
 function updateRequest(){
@@ -343,6 +371,7 @@ const data = {
         fetchRequests(selectedTypeOfRequests).then(() => {
             sortItems()
         });
+        requestModal = false
     });
     console.log(requests)
 }
@@ -532,7 +561,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
 </script>
 
 <div>
-    <Modal size="lg" {title} bind:open={requestModal} autoclose>
+    <Modal size="lg" {title} bind:open={requestModal}>
         <div class="container">
             <!-- Main Section (2/3 width) -->
         <div class="main-section">
@@ -570,17 +599,18 @@ $: title = requestName ? requestName : "Založení nového požadavku";
             {#if requestAssignedBy}
                 <div class="comment-section">
                     <h3>Komentáře</h3>
+                    <div class="max-h-[480px] overflow-auto">
                     <!-- Display sample comments -->
-                    {#each comments as comment}
+                    {#each requestComments as comment}
                         <div class="comment">
-                            <p class="author">{comment.author+" "}<span class="time"> {comment.time}</span> </p>
+                            <p class="author">{comment.author.forename+" " + comment.author.surname + " "}<span class="time"> {formatDateAndTime(comment.dateOfComment)}</span> </p>
                             <p>{comment.content}</p>
                         </div>
                     {/each}
-
-                    <Textarea class="mt-auto" rows="1" placeholder="Napište komentář">
+                    </div>
+                    <Textarea class="mt-auto" rows="1" bind:value={commentToPost} placeholder="Napište komentář">
                         <div slot="footer" class="flex items-center justify-between">
-                          <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" type="submit">Odeslat komentář</Button>
+                          <Button on:click={() => postComment()} class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" type="submit">Odeslat komentář</Button>
                         </div>
                   </Textarea>
                 </div>
@@ -871,6 +901,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
     }
 
     .container {
+        max-height: 650px;
         display: flex;
         flex-direction: row;
     }
