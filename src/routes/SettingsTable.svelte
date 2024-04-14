@@ -4,22 +4,26 @@ import Header from "../lib/Header.svelte";
 import {
     Button, Checkbox, Dropdown, DropdownDivider, DropdownItem, Input, Label,
     Modal, MultiSelect, Pagination,
-    Search, Select,
+    Search, Select, Spinner,
     Table,
     TableBody,
     TableBodyCell,
     TableBodyRow,
     TableHead,
-    TableHeadCell, Textarea
+    TableHeadCell, Textarea, Toast
 } from "flowbite-svelte";
 import {
     ArrowDownOutline,
-    ArrowLeftToBracketOutline, ChevronDownOutline, ChevronUpOutline,
+    ArrowLeftToBracketOutline, CheckCircleSolid, ChevronDownOutline, ChevronUpOutline,
     CirclePlusOutline, CirclePlusSolid, CloseCircleSolid,
     SearchOutline, UserAddSolid,
     UserSolid
 } from "flowbite-svelte-icons";
-
+import {onMount} from "svelte";
+let users = []
+let open = false
+let success = false
+let failure = false
 let requestModal = false;
 let userNameAndSurname
 let userRole
@@ -27,24 +31,114 @@ let userCategories = []
 
 let searchTerm = ''
 
-function setCurrentUser(id){
-    let userToSet = users.find(user => user.id === id)
+function sendPostToGetAllEmployeesFromAD() {
+    return fetch(import.meta.env.VITE_BE_URL+"/employees/add", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+        .then(response => response.json())
+        .then(data => {
+            return data;
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+
+}
+
+function fetchEmployees(){
+        return fetch(import.meta.env.VITE_BE_URL+"/employees/all", {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json(); // This returns a promise
+            })
+            .then(data => {
+                // Map the data right after it is received
+                users = data.map(user => ({
+                    ...user,
+                    name: user.forename + ' ' + user.surname,
+                    role: roleMapping[user.userRole],
+                    categories: user.categories.map(category => categoryMapping[category])
+                }));
+                console.log(users);
+                return users; // Return the requests
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+
+onMount(() => {
+    fetchEmployees().then(() => {
+
+    });
+
+});
+
+
+
+const roleMapping = {
+    "EMPLOYEE": "Běžný uživatel",
+    "SOLVER": "Řešitel",
+    "MANAGER": "Manažer",
+    "ADMIN": "Admin",
+    "NON_ACTIVE": "Neaktivní"
+};
+const categoryMapping = {
+    'INTRANET': 'Intranet',
+    'SOFTWARE': 'Software',
+    'PROPERTY': 'Majetek',
+    'HARDWARE': 'Hardware',
+    'PERMISSION': 'Oprávnění',
+    'OTHER': 'Jiné'
+}
+
+function getEmployeesFromAd(){
+    open = true
+    sendPostToGetAllEmployeesFromAD().then((data) => {
+        console.log(data)
+        open = false
+        if(data === -1){
+            failure = true
+        }
+        else{
+            success = true
+        }
+    });
+
+}
+
+
+function setCurrentUser(username){
+    let userToSet = users.find(user => user.username === username)
     userNameAndSurname = userToSet.name
     switch (userToSet.role){
         case "Běžný uživatel":
-            userRole = "bu"
+            userRole = "EMPLOYEE"
             break
         case "Řešitel":
-            userRole = "sr"
+            userRole = "SOLVER"
             break
         case "Manažer":
-            userRole = "mr"
+            userRole = "MANAGER"
             break
         case "Admin":
-            userRole = "an"
+            userRole = "ADMIN"
+            break
+        case "Neaktivní":
+            userRole = "NON_ACTIVE"
             break
         default:
-            userRole = "bu"
+            userRole = "EMPLOYEE"
             break
     }
     userToSet.categories.forEach(category => {
@@ -52,22 +146,22 @@ function setCurrentUser(id){
         console.log(category)
         switch (category){
             case "Intranet":
-                userCategories.push('it')
+                userCategories.push('INTRANET')
                 break
             case "Software":
-                userCategories.push('sw')
+                userCategories.push('SOFTWARE')
                 break
             case "Majetek":
-                userCategories.push('pr')
+                userCategories.push('PROPERTY')
                 break
             case "Hardware":
-                userCategories.push('hw')
+                userCategories.push('HARDWARE')
                 break
             case "Oprávnění":
-                userCategories.push('rg')
+                userCategories.push('PERMISSION')
                 break
             case "Jiné":
-                userCategories.push('ot')
+                userCategories.push('OTHER')
                 break
             default:
                 userCategories = []
@@ -77,41 +171,41 @@ function setCurrentUser(id){
 )
 
 }
-let users = [
-    {
-        id: '1',
-        name: 'Jan Novák',
-        role: "Běžný uživatel",
-        categories: ["Software", "Hardware"],
-    },
-    {
-        id: '2',
-        name: 'Daniela Němcová',
-        role: "Manažer",
-        categories: ["Majetek", "Oprávnění", "Jiné"],
 
-    },
-    {
-        id: '3',
-        name: 'Tereza Kučerová',
-        role: "Admin",
-        categories: ["Oprávnění", "Jiné"],
-    },
-    {
-        id: '4',
-        name: 'Daniel Procházka',
-        role: "Řešitel",
-        categories: ["Intranet", "Hardware"],
+    // {
+    //     id: '1',
+    //     name: 'Jan Novák',
+    //     role: "Běžný uživatel",
+    //     categories: ["Software", "Hardware"],
+    // },
+    // {
+    //     id: '2',
+    //     name: 'Daniela Němcová',
+    //     role: "Manažer",
+    //     categories: ["Majetek", "Oprávnění", "Jiné"],
+    //
+    // },
+    // {
+    //     id: '3',
+    //     name: 'Tereza Kučerová',
+    //     role: "Admin",
+    //     categories: ["Oprávnění", "Jiné"],
+    // },
+    // {
+    //     id: '4',
+    //     name: 'Daniel Procházka',
+    //     role: "Řešitel",
+    //     categories: ["Intranet", "Hardware"],
+    //
+    // },
+    // {
+    //     id: '5',
+    //     name: 'Michal Dvořák',
+    //     role: "Řešitel",
+    //     categories: ["Software", "Jiné"],
+    //
+    // }
 
-    },
-    {
-        id: '5',
-        name: 'Michal Dvořák',
-        role: "Řešitel",
-        categories: ["Software", "Jiné"],
-
-    }
-];
 $: filteredItems = users.filter((user) => user.name.toLowerCase().indexOf(searchTerm.toLowerCase()) !== -1 && filtersByRole[user.role]);
 $: pageItems = filteredItems.slice((currentPage - 1) * itemsPerPage, (currentPage - 1) * itemsPerPage + itemsPerPage);
 
@@ -139,20 +233,21 @@ function categoryClass(state) {
 }
 let selectedCategory
 let categories = [
-    { value: 'it', name: 'Intranet' },
-    { value: 'sw', name: 'Software' },
-    { value: 'pr', name: 'Majetek' },
-    { value: 'hw', name: 'Hardware' },
-    { value: 'rg', name: 'Oprávnění' },
-    { value: 'ot', name: 'Jiné' }
+    { value: 'INTRANET', name: 'Intranet' },
+    { value: 'SOFTWARE', name: 'Software' },
+    { value: 'PROPERTY', name: 'Majetek' },
+    { value: 'HARDWARE', name: 'Hardware' },
+    { value: 'PERMISSION', name: 'Oprávnění' },
+    { value: 'OTHER', name: 'Jiné' }
 ];
 
-let selectedRole
+
 let role = [
-    { value: 'bu', name: 'Běžný uživatel' },
-    { value: 'sr', name: 'Řešitel' },
-    { value: 'mr', name: 'Manažer' },
-    { value: 'an', name: 'Admin' },
+    { value: 'EMPLOYEE', name: 'Běžný uživatel' },
+    { value: 'SOLVER', name: 'Řešitel' },
+    { value: 'MANAGER', name: 'Manažer' },
+    { value: 'ADMIN', name: 'Admin' },
+    { value: 'NON_ACTIVE', name: 'Neaktivní' }
 ];
 let filtersByRole = {
     "Běžný uživatel": true,
@@ -237,7 +332,7 @@ let roleDropDownActive = false
                 Role
                 <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={role} bind:value={userRole} placeholder="Vyberte roli"/>
             </Label>
-            {#if userRole !== "bu"}
+            {#if userRole !== "EMPLOYEE"}
             <Label>
                 Kategorie
                 <MultiSelect class="mt-1 mb-64 focus:border-blue-700 focus:ring-blue-700" items={categories} bind:value={userCategories} />
@@ -255,7 +350,7 @@ let roleDropDownActive = false
         <div class="page-content mt-[25]">
             <div class="flex justify-between items-center p-4">
                 <div class="flex w-1/3">
-                <Button size="sm" class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0"><UserAddSolid class="mr-1" size="sm" />Načíst uživatelé z Active directory</Button>
+                <Button size="sm" class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => getEmployeesFromAd()}><UserAddSolid class="mr-1" size="sm" />Načíst uživatelé z Active directory</Button>
                 {#if filterActive}
                     <Button on:click={resetSort} size="sm" class="ml-2 bg-transparent text-gray-600 hover:bg-transparent hover:text-gray-800 focus-within:ring-opacity-0"><CloseCircleSolid class="mr-1" size="sm" />Zrušit řazení</Button>
                 {/if}
@@ -306,7 +401,7 @@ let roleDropDownActive = false
                     {#each pageItems as person}
                     <TableBodyRow>
                         <TableBodyCell class="cursor-pointer" on:click={() => {
-                               setCurrentUser(person.id)
+                               setCurrentUser(person.username)
                                requestModal = true
                         }}>{person.name}</TableBodyCell>
                         <TableBodyCell><p class={roleClass(person.role)}>{person.role}</p></TableBodyCell>
@@ -333,7 +428,15 @@ let roleDropDownActive = false
                 <button on:click={nextPage}>Další</button>
             </div>
         </div>
+        <Toast dismissable={false} bind:open position="top-left"><Spinner size="5" color="blue"/> Načítám uživatele z Active Directory.</Toast>
+        {#if success}
+        <Toast on:close={() => success = false} position="top-left" color="green"><CheckCircleSolid slot="icon" class="text-green-600" size="sm" />Načtení proběhlo úspěšně.</Toast>
+        {/if}
+        {#if failure}
+            <Toast on:close={() => failure = false} position="top-left" color="red"><CloseCircleSolid slot="icon" class="text-red-600" size="sm" />Při načítání došlo k chybě.</Toast>
+        {/if}
     </div>
+
 </div>
 
 <style>

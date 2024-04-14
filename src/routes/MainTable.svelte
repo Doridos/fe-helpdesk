@@ -347,7 +347,6 @@ function postRequest(){
 }
 
 function postComment(){
-    console.log("aaa")
     sendPostComment().then(() => {
         fetchRequestDetail(requestId).then(() => {
             requestModal = true
