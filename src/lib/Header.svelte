@@ -9,7 +9,10 @@
         UserSolid
     } from "flowbite-svelte-icons";
     import {navigate} from "svelte-routing";
-
+    import {parseJwt} from "./utils.js";
+    import {onMount} from "svelte";
+    let jwt = localStorage.getItem("jwt")
+    let parsedJwt = parseJwt(jwt)
 
     function logout(){
         localStorage.removeItem("jwt")
@@ -31,11 +34,13 @@
         <div class="flex-1 flex justify-end space-x-2">
             {#if localStorage.getItem("jwt") !== null}
                 {#if location.pathname === "/requests"}
+                    {#if parseJwt(localStorage.getItem("jwt")).role === "ADMIN"}
                 <Button size="xs" on:click={() => navigate("/settings")} class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><CogSolid size="sm" /></Button>
-                {:else}
+                    {/if}
+                    {:else}
                 <Button size="xs" on:click={() => navigate("/requests")} class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><HomeOutline size="sm" /></Button>
                 {/if}
-                <Button size="sm" class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><UserSolid class=mr-1 size="sm" />Jan Hradecký</Button>
+                <Button size="sm" class="bg-transparent border-white border hover:bg-transparent focus-within:ring-opacity-0"><UserSolid class=mr-1 size="sm" />{parsedJwt.forename + " " + parsedJwt.surname}</Button>
             <Button on:click={logout} size="sm" class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><ArrowLeftToBracketOutline class=mr-2 size="sm" />Odhlásit se</Button>
             {/if}
         </div>

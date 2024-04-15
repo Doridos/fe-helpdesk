@@ -1,6 +1,7 @@
 <script>
 import Header from "../lib/Header.svelte";
 import { formatDateAndTime } from "../lib/utils.js";
+import { parseJwt } from "../lib/utils.js";
 import {
     Button, Checkbox, Dropdown, DropdownDivider, DropdownItem, Input, Label,
     Modal, MultiSelect,
@@ -19,26 +20,26 @@ import {
     SearchOutline,
     UserSolid
 } from "flowbite-svelte-icons";
-import {onMount} from "svelte";
-
+import {navigate} from "svelte-routing";
+export let id;
 let requestModal
 let requests = []
-onMount(() => {
-    fetchRequests("/all").then(() => {
-        sortDirection = "desc"
-        sortItems()
-    });
+let userCurrentUserCategories = []
+let jwt = localStorage.getItem("jwt")
+fetchUserDetail().then((data) => {
+    userCurrentUserCategories = data.categories
+})
 
-});
 
 function fetchRequests(requestType){
     if(requestType === "/assigned/by/" || requestType === "/assigned/to/"){
-        requestType += localStorage.getItem("username")
+        requestType += parseJwt(jwt).sub
 
         return fetch(import.meta.env.VITE_BE_URL+"/request"+requestType, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + `${jwt}`,
             },
         })
             .then(response => {
@@ -68,8 +69,9 @@ function fetchRequests(requestType){
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + `${jwt}`,
             },
-            body: localStorage.getItem("assignedCategories")
+            body: JSON.stringify(userCurrentUserCategories)
         })
             .then(response => {
                 if (!response.ok) {
@@ -97,6 +99,7 @@ function fetchRequests(requestType){
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + `${jwt}`
             }
         })
             .then(response => {
@@ -124,11 +127,37 @@ function fetchRequests(requestType){
 }
 let requestComments = []
 let commentToPost
+
+function fetchUserDetail() {
+    return fetch(import.meta.env.VITE_BE_URL + "/employees/user/"+ parseJwt(jwt).sub, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + `${jwt}`,
+        },
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json(); // This returns a promise
+        })
+        .then(data => {
+            // Map the data right after it is received
+            console.log(data);
+            return data
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+}
+
 function fetchRequestDetail(requestId) {
     return fetch(import.meta.env.VITE_BE_URL + "/request/"+ requestId, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + `${jwt}`,
         },
     })
         .then(response => {
@@ -161,6 +190,7 @@ let requestState
 let requestCategory
 let requestPriority
 let requestAssignedBy
+let requestAssignedByUsername
 let requestAssignedTo
 let requestDateOfAnnouncement
 let requestDateOfCompletion
@@ -178,39 +208,118 @@ function newRequest() {
     requestDateOfCompletion = ""
 }
 function setCurrentRequest(id){
+    console.log(id)
     let requestToSet = requests.find(request => request.id === id)
-    console.log(requestToSet)
-    requestId = requestToSet.id
-    requestName = requestToSet.name
-    requestDescription = requestToSet.description
-    requestComments = requestToSet.comments
-    switch (requestToSet.requestCategory){
-        case "Intranet":
-            requestCategory = 'INTRANET'
-            break
-        case "Software":
-            requestCategory = 'SOFTWARE'
-            break
-        case "Majetek":
-            requestCategory = 'PROPERTY'
-            break
-        case "Hardware":
-            requestCategory = 'HARDWARE'
-            break
-        case "Oprávnění":
-            requestCategory = 'PERMISSION'
-            break
-        case "Jiné":
-            requestCategory = 'OTHER'
-            break
-        default:
-            requestCategory = 'INTRANET'
-            break
+    if(requestToSet){
+        console.log(requestToSet)
+        requestId = requestToSet.id
+        requestName = requestToSet.name
+        requestDescription = requestToSet.description
+        requestComments = requestToSet.comments
+        switch (requestToSet.requestCategory){
+            case "Intranet":
+                requestCategory = 'INTRANET'
+                break
+            case "Software":
+                requestCategory = 'SOFTWARE'
+                break
+            case "Majetek":
+                requestCategory = 'PROPERTY'
+                break
+            case "Hardware":
+                requestCategory = 'HARDWARE'
+                break
+            case "Oprávnění":
+                requestCategory = 'PERMISSION'
+                break
+            case "Jiné":
+                requestCategory = 'OTHER'
+                break
+            default:
+                requestCategory = 'INTRANET'
+                break
+        }
+        fetch(import.meta.env.VITE_BE_URL+"/employees/"+requestCategory, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + `${jwt}`,
+            },
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json(); // This returns a promise
+            })
+            .then(data => {
+                console.log(data);
+                solvers = data.map(solver => ({
+                    value: solver.username,
+                    name: solver.forename + " " + solver.surname
+                }));
+                requestAssignedTo = requestToSet.assignedTo.map(solver => solver.username)
+                console.log()
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        switch (requestToSet.requestPriority){
+
+            case "Nízká":
+                requestPriority = 'LOW'
+                break
+            case "Střední":
+                requestPriority = 'MEDIUM'
+                break
+            case "Vysoká":
+                requestPriority = 'HIGH'
+                console.log(requestPriority)
+                break
+            case "Kritická":
+                requestPriority = 'CRITICAL'
+                console.log(requestPriority)
+                break
+            default:
+                requestPriority = 'LOW'
+                break
+        }
+        switch (requestToSet.requestState){
+            case "Nový":
+                requestState = 'NEW'
+                break
+            case "V řešení":
+                requestState = 'IN_PROGRESS'
+                break
+            case "Vyřešen":
+                requestState = 'SOLVED'
+                break
+            case "Neplatný":
+                requestState = 'INVALID'
+                break
+            default:
+                requestState = 'NEW'
+                break
+        }
+
+
+        requestDateOfAnnouncement = formatDateAndTime(requestToSet.dateOfAnnouncement)
+        requestDateOfCompletion = requestToSet.dateOfCompletion
+        requestAssignedByUsername = requestToSet.assignedBy.username
+        requestAssignedBy = requestToSet.assignedBy.forename + " " + requestToSet.assignedBy.surname
+    }else{
+        return false
     }
+
+
+
+}
+function getSolversByCategory(){
     fetch(import.meta.env.VITE_BE_URL+"/employees/"+requestCategory, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + `${jwt}`,
         },
     })
         .then(response => {
@@ -225,68 +334,25 @@ function setCurrentRequest(id){
                 value: solver.username,
                 name: solver.forename + " " + solver.surname
             }));
-            requestAssignedTo = requestToSet.assignedTo.map(solver => solver.username)
+            requestAssignedTo = []
             console.log()
         })
         .catch((error) => {
             console.error('Error:', error);
         });
-    switch (requestToSet.requestPriority){
-
-        case "Nízká":
-            requestPriority = 'LOW'
-            break
-        case "Střední":
-            requestPriority = 'MEDIUM'
-            break
-        case "Vysoká":
-            requestPriority = 'HIGH'
-            console.log(requestPriority)
-            break
-        case "Kritická":
-            requestPriority = 'CRITICAL'
-            console.log(requestPriority)
-            break
-        default:
-            requestPriority = 'LOW'
-            break
-    }
-    switch (requestToSet.requestState){
-        case "Nový":
-            requestState = 'NEW'
-            break
-        case "V řešení":
-            requestState = 'IN_PROGRESS'
-            break
-        case "Vyřešen":
-            requestState = 'SOLVED'
-            break
-        case "Neplatný":
-            requestState = 'INVALID'
-            break
-        default:
-            requestState = 'NEW'
-            break
-    }
-
-
-    requestDateOfAnnouncement = formatDateAndTime(requestToSet.dateOfAnnouncement)
-    requestDateOfCompletion = requestToSet.dateOfCompletion
-    requestAssignedBy = requestToSet.assignedBy.forename + " " + requestToSet.assignedBy.surname
-
-
 }
 function sendPostRequest() {
     return fetch(import.meta.env.VITE_BE_URL+"/request/post", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + `${jwt}`,
         },
         body: JSON.stringify({
             "name": requestName,
             "description": requestDescription,
             "dateOfAnnouncement": new Date().toISOString(),
-            "assignedBy":  localStorage.getItem("username"),
+            "assignedBy":  parseJwt(jwt).sub,
             "requestState": "NEW",
             "requestCategory": requestCategory,
             "requestPriority": requestPriority
@@ -305,11 +371,12 @@ function sendPostComment() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + `${jwt}`,
         },
         body: JSON.stringify({
             "content": commentToPost,
             "dateOfComment": new Date().toISOString(),
-            "authorUsername": localStorage.getItem("username"),
+            "authorUsername": parseJwt(jwt).sub,
             "requestId": requestId
         }),
     })
@@ -326,6 +393,7 @@ function sendPutRequest(data) {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + `${jwt}`
         },
         body: JSON.stringify(data),
     })
@@ -437,20 +505,28 @@ let filtersByPriority = {
     "Kritická": true,
 }
 
-let selectedTypeOfRequests = "/all"
+let selectedTypeOfRequests
 
 $: {
-    if (selectedTypeOfRequests) {
+    if (jwt && selectedTypeOfRequests) {
+
         fetchRequests(selectedTypeOfRequests).then(() => {
+            sortDirection = "desc"
             sortItems()
+            if(id){
+                if(setCurrentRequest(Number(id)) === false){
+                    requestModal = false
+                }
+                else {
+                    requestModal = true
+                }
+            }
         });
-
-
-
         // Do something with selectedRequestType
         console.log(`Selected request type: ${selectedTypeOfRequests}`);
     }
 }
+
 let state = [
     { value: 'NEW', name: 'Nový' },
     { value: 'IN_PROGRESS', name: 'V řešení' },
@@ -486,13 +562,37 @@ const priorityMapping = {
     "CRITICAL": "Kritická"
 };
 
+let typeOfRequests;
 
-let typeOfRequests = [
-    { value: '/assigned/by/', name: 'Mé zadané požadavky' },
-    { value: '/assigned/to/', name: 'Požadavky, které řeším' },
-    { value: '/categories/', name: 'Mé přiřazené kategorie' },
-    { value: '/all', name: 'Všechny požadavky' },
-];
+if (parseJwt(jwt).role === "EMPLOYEE") {
+    selectedTypeOfRequests = '/assigned/by/'
+    typeOfRequests = [
+        { value: '/assigned/by/', name: 'Mé zadané požadavky' },
+    ];
+} else if (parseJwt(jwt).role === "SOLVER") {
+    selectedTypeOfRequests = '/assigned/by/'
+    typeOfRequests = [
+        { value: '/assigned/by/', name: 'Mé zadané požadavky' },
+        { value: '/assigned/to/', name: 'Požadavky, které řeším' },
+        { value: '/categories/', name: 'Mé přiřazené kategorie' },
+    ];
+}else if (parseJwt(jwt).role === "MANAGER") {
+    selectedTypeOfRequests = '/all'
+    typeOfRequests = [
+        { value: '/assigned/by/', name: 'Mé zadané požadavky' },
+        { value: '/assigned/to/', name: 'Požadavky, které řeším' },
+        { value: '/categories/', name: 'Mé přiřazené kategorie' },
+        { value: '/all', name: 'Všechny požadavky' },
+    ];
+} else if (parseJwt(jwt).role === "ADMIN") {
+    selectedTypeOfRequests = '/all'
+    typeOfRequests = [
+        { value: '/assigned/by/', name: 'Mé zadané požadavky' },
+        { value: '/assigned/to/', name: 'Požadavky, které řeším' },
+        { value: '/categories/', name: 'Mé přiřazené kategorie' },
+        { value: '/all', name: 'Všechny požadavky' },
+    ];
+}
 
 let filterActive = false
 let currentPage = 1;
@@ -560,7 +660,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
 </script>
 
 <div>
-    <Modal size="lg" {title} bind:open={requestModal}>
+    <Modal size="lg" {title} bind:open={requestModal} on:close={() => navigate("/requests")}>
         <div class="container">
             <!-- Main Section (2/3 width) -->
         <div class="main-section">
@@ -572,7 +672,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
             <textarea bind:value={requestDescription} id="request-description" rows="4" class="mb-1 block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Popište svůj požadavek"></textarea>
             <Label>
                 Kategorie
-                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={categories} bind:value={requestCategory} placeholder="Vyberte kategorii"/>
+                <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" on:change={getSolversByCategory} items={categories} bind:value={requestCategory} placeholder="Vyberte kategorii"/>
             </Label>
             <Label>
                 Priorita

@@ -7,7 +7,8 @@
 
 <Router>
     <Route path="/" component={Login} />
-    <Route path="/requests" component={MainTable} />
+    <Route path="/requests/" component={MainTable} />
+    <Route path="/requests/:id" let:params component={MainTable} />
     <Route path="/settings" component={SettingsTable} />
 
 </Router>

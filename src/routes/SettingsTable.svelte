@@ -1,5 +1,6 @@
 <script>
 import Header from "../lib/Header.svelte";
+import {parseJwt} from "../lib/utils.js";
 
 import {
     Button, Checkbox, Dropdown, DropdownDivider, DropdownItem, Input, Label,
@@ -20,6 +21,7 @@ import {
     UserSolid
 } from "flowbite-svelte-icons";
 import {onMount} from "svelte";
+import {navigate} from "svelte-routing";
 let users = []
 let open = false
 let success = false
@@ -28,14 +30,18 @@ let requestModal = false;
 let userNameAndSurname
 let userRole
 let userCategories = []
+let userToChangeUsername
 
 let searchTerm = ''
+
+let jwt = localStorage.getItem("jwt");
 
 function sendPostToGetAllEmployeesFromAD() {
     return fetch(import.meta.env.VITE_BE_URL+"/employees/add", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + `${jwt}`
         },
     })
         .then(response => response.json())
@@ -48,11 +54,43 @@ function sendPostToGetAllEmployeesFromAD() {
 
 }
 
+function sendPutToUpdateEmployee() {
+    return fetch(import.meta.env.VITE_BE_URL+"/employees/"+userToChangeUsername, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + `${jwt}`
+        },
+        body: JSON.stringify({
+            "userRole": userRole,
+            "categories": userCategories
+        }),
+    })
+        .then(response => {
+            return response.json();
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+        });
+}
+
+function updateEmployee(){
+    console.log(userRole)
+    if(userRole === "EMPLOYEE" || userRole === "NON_ACTIVE"){
+        userCategories = []
+    }
+    sendPutToUpdateEmployee().then((data) => {
+        console.log(data)
+        fetchEmployees()
+    })
+}
+
 function fetchEmployees(){
         return fetch(import.meta.env.VITE_BE_URL+"/employees/all", {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + `${jwt}`
             },
         })
             .then(response => {
@@ -103,6 +141,8 @@ const categoryMapping = {
 }
 
 function getEmployeesFromAd(){
+    failure = false
+    success = false
     open = true
     sendPostToGetAllEmployeesFromAD().then((data) => {
         console.log(data)
@@ -119,7 +159,9 @@ function getEmployeesFromAd(){
 
 
 function setCurrentUser(username){
+    userToChangeUsername = username
     let userToSet = users.find(user => user.username === username)
+    userCategories = []
     userNameAndSurname = userToSet.name
     switch (userToSet.role){
         case "Běžný uživatel":
@@ -231,7 +273,6 @@ function categoryClass(state) {
         default:        return '';
     }
 }
-let selectedCategory
 let categories = [
     { value: 'INTRANET', name: 'Intranet' },
     { value: 'SOFTWARE', name: 'Software' },
@@ -254,6 +295,7 @@ let filtersByRole = {
     "Řešitel": true,
     "Manažer": true,
     "Admin": true,
+    "Neaktivní": true
 }
 
 let selectedState = "us"
@@ -271,7 +313,7 @@ let test
 let filterActive = false
 
 let currentPage = 1;
-const itemsPerPage = 3;
+const itemsPerPage = 15;
 
 function setPage(page) {
     currentPage = page;
@@ -324,6 +366,7 @@ let roleDropDownActive = false
 </script>
 
 <div>
+
     <Modal class="h-1/2" title={userNameAndSurname} bind:open={requestModal} autoclose>
         <div class="container">
             <!-- Main Section (2/3 width) -->
@@ -332,7 +375,7 @@ let roleDropDownActive = false
                 Role
                 <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={role} bind:value={userRole} placeholder="Vyberte roli"/>
             </Label>
-            {#if userRole !== "EMPLOYEE"}
+            {#if userRole !== "EMPLOYEE" && userRole !== "NON_ACTIVE"}
             <Label>
                 Kategorie
                 <MultiSelect class="mt-1 mb-64 focus:border-blue-700 focus:ring-blue-700" items={categories} bind:value={userCategories} />
@@ -341,12 +384,14 @@ let roleDropDownActive = false
         </div>
         </div>
         <svelte:fragment slot="footer">
-            <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => alert('Zadání požadavku')}>Uložit</Button>
+            <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => updateEmployee()}>Uložit</Button>
         </svelte:fragment>
 
     </Modal>
     <Header ></Header>
+
     <div class="page-background">
+        {#if parseJwt(localStorage.getItem("jwt")).role === "ADMIN"}
         <div class="page-content mt-[25]">
             <div class="flex justify-between items-center p-4">
                 <div class="flex w-1/3">
@@ -393,6 +438,7 @@ let roleDropDownActive = false
                             <DropdownItem><Checkbox bind:checked={filtersByRole.Řešitel}>Řešitel</Checkbox></DropdownItem>
                             <DropdownItem><Checkbox bind:checked={filtersByRole.Manažer}>Manažer</Checkbox></DropdownItem>
                             <DropdownItem><Checkbox bind:checked={filtersByRole.Admin}>Admin</Checkbox></DropdownItem>
+                        <DropdownItem><Checkbox bind:checked={filtersByRole.Neaktivní}>Neaktivní</Checkbox></DropdownItem>
 
                         </Dropdown></TableHeadCell>
                     <TableHeadCell><div class="flex items-center">Přiřazené kategorie</div></TableHeadCell>
@@ -428,6 +474,18 @@ let roleDropDownActive = false
                 <button on:click={nextPage}>Další</button>
             </div>
         </div>
+        {:else}
+            <div class="page-content mt-[25]">
+                <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
+                    <div class="mx-auto max-w-screen-sm text-center">
+                        <h1 class="mb-4 text-7xl tracking-tight font-extrabold lg:text-9xl text-red-600 dark:text-primary-500">401</h1>
+                        <p class="mb-4 text-3xl tracking-tight font-bold text-gray-900 md:text-4xl dark:text-white">Stala se chyba...</p>
+                        <Button on:click={() => navigate("/requests")} class="mt-1.5 bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" type="submit">Zpátky na domovskou stránku</Button>
+                    </div>
+                </div>
+            </div>
+        {/if}
+        </div>
         <Toast dismissable={false} bind:open position="top-left"><Spinner size="5" color="blue"/> Načítám uživatele z Active Directory.</Toast>
         {#if success}
         <Toast on:close={() => success = false} position="top-left" color="green"><CheckCircleSolid slot="icon" class="text-green-600" size="sm" />Načtení proběhlo úspěšně.</Toast>
@@ -435,9 +493,7 @@ let roleDropDownActive = false
         {#if failure}
             <Toast on:close={() => failure = false} position="top-left" color="red"><CloseCircleSolid slot="icon" class="text-red-600" size="sm" />Při načítání došlo k chybě.</Toast>
         {/if}
-    </div>
-
-</div>
+        </div>
 
 <style>
     .pointer:hover{

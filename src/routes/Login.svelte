@@ -4,11 +4,42 @@
     import {navigate} from "svelte-routing";
     let password
     let username
-    function login(){
-        localStorage.setItem("jwt", username)
-        localStorage.setItem("username", "babyc")
-        localStorage.setItem("assignedCategories", JSON.stringify(["INTRANET", "HARDWARE"]));
-        navigate("/requests")
+    let error = false
+    function login() {
+        event.preventDefault();
+        fetch(import.meta.env.VITE_BE_URL + "/authentication", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "username": username,
+                "password": password
+            }),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    error = true;
+                }
+                else {
+                    error = false;
+                    return response.json();
+                }
+
+            })
+            .then(data => {
+                console.log(data);
+                if (data.token) {
+                    localStorage.setItem("jwt", data.token);
+                    navigate("/requests");
+                } else {
+                    error = true;
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+
     }
 </script>
 
@@ -26,9 +57,13 @@
                 <Label for="password" class="mb-2">Heslo</Label>
                 <Input bind:value={password} type="password" id="password" class="focus:border-blue-700 focus:ring-blue-700" placeholder="•••••••••" required />
             </div>
+
             <div class="text-center">
                 <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" type="submit">Přihlásit se</Button>
             </div>
+                {#if error}
+                    <p class="mt-1 text-red-600 text-center">Špatné uživatelské jméno nebo heslo</p>
+                {/if}
             </form>
         </div>
     </div>
@@ -49,6 +84,6 @@
         background-color: white;
         max-width: 33%;
         width: 440px;
-        height: 330px;
+        height: 350px;
     }
 </style>
