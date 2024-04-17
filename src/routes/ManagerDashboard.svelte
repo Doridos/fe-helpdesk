@@ -398,7 +398,7 @@
             <div class="flex items-center align-middle">
                 <div>
                     <h5 class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1">Počet nových požadavků</h5>
-                    <p class="text-sm font-normal text-gray-500 dark:text-gray-400">Přehled počtu zadaných požadvků</p>
+                    <p class="text-sm font-normal text-gray-500 dark:text-gray-400">Přehled počtu zadaných požadavků</p>
                 </div>
             </div>
             <div>
