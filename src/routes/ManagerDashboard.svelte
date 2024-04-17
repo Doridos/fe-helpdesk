@@ -16,7 +16,7 @@
 
     let options = {
         series: [],
-        colors: ['#ea5545', '#ef9b20', '#27aeef', '#bdcf32'],
+        colors: ['#ef9b20', '#27aeef', '#bdcf32', '#ea5545'],
         chart: {
             height: 320,
             width: '100%',
@@ -66,7 +66,7 @@
                 top: -2
             }
         },
-        labels: ['Neplatný', 'Nový', 'V řešení', 'Vyřešen'],
+        labels: ['Nový', 'V řešení', 'Vyřešen', 'Neplatný'],
         dataLabels: {
             enabled: false
         },
@@ -214,7 +214,7 @@
                     }
                 }
             },
-            labels: ['Hardware', 'Intranet', 'Jiný', 'Oprávnění', 'Majetek', 'Software'],
+            labels: ['Intranet', 'Software', 'Majetek', 'Hardware','Oprávnění', 'Jiné'],
             dataLabels: {
                 enabled: true,
                 style: {
@@ -266,8 +266,9 @@
                 return response.json(); // This returns a promise
             })
             .then(data => {
+                let order = ["NEW", "IN_PROGRESS", "SOLVED", "INVALID"];
                 // Map the data right after it is received
-                options.series = Object.values(data);
+                options.series = order.map(key => data[key]);
                 console.log(data);
                 return options.series; // Return the requests
             })
@@ -291,8 +292,10 @@
                 return response.json(); // This returns a promise
             })
             .then(data => {
+                let order = ["INTRANET", "SOFTWARE", "PROPERTY", "HARDWARE", "PERMISSION", "OTHER"];
                 // Map the data right after it is received
-                chart3.chart.series = Object.values(data);
+                chart3.chart.series  = order.map(key => data[key]);
+                // Map the data right after it is received
                 console.log(data);
                 return options.series; // Return the requests
             })
