@@ -1,7 +1,7 @@
 <script>
     import {Button} from "flowbite-svelte";
     import {
-        ArrowLeftToBracketOutline,
+        ArrowLeftToBracketOutline, ChartPieOutline,
         CogSolid,
         EnvelopeSolid,
         HomeOutline,
@@ -37,8 +37,11 @@
                     {#if parseJwt(localStorage.getItem("jwt")).role === "ADMIN"}
                 <Button size="xs" on:click={() => navigate("/settings")} class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><CogSolid size="sm" /></Button>
                     {/if}
+                    {#if (parseJwt(localStorage.getItem("jwt")).role === "ADMIN" || parseJwt(localStorage.getItem("jwt")).role === "MANAGER")}
+                        <Button size="xs" on:click={() => navigate("/dashboard")} class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><ChartPieOutline size="sm" /></Button>
+                    {/if}
                     {:else}
-                <Button size="xs" on:click={() => navigate("/requests")} class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><HomeOutline size="sm" /></Button>
+                <Button size="xs"  on:click={() => navigate("/requests")} class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><HomeOutline size="sm" /></Button>
                 {/if}
                 <Button size="sm" class="bg-transparent border-white border hover:bg-transparent focus-within:ring-opacity-0"><UserSolid class=mr-1 size="sm" />{parsedJwt.forename + " " + parsedJwt.surname}</Button>
             <Button on:click={logout} size="sm" class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><ArrowLeftToBracketOutline class=mr-2 size="sm" />Odhlásit se</Button>

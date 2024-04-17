@@ -23,6 +23,8 @@
   "dependencies": {
     "@sveltejs/kit": "^2.5.5",
     "flowbite-svelte-icons": "^1.5.0",
+    "fusioncharts": "^3.23.0",
+    "svelte-fusioncharts": "^1.0.0",
     "svelte-routing": "^2.12.0"
   }
 }

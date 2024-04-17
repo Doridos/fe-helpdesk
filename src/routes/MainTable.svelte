@@ -3,6 +3,7 @@ import Header from "../lib/Header.svelte";
 import { formatDateAndTime } from "../lib/utils.js";
 import { parseJwt } from "../lib/utils.js";
 import {
+    Alert,
     Button, Checkbox, Dropdown, DropdownDivider, DropdownItem, Input, Label,
     Modal, MultiSelect,
     Search, Select,
@@ -11,11 +12,11 @@ import {
     TableBodyCell,
     TableBodyRow,
     TableHead,
-    TableHeadCell, Textarea
+    TableHeadCell, Textarea, Toast
 } from "flowbite-svelte";
 import {
     ArrowDownOutline,
-    ArrowLeftToBracketOutline, ChevronDownOutline, ChevronUpOutline,
+    ArrowLeftToBracketOutline, CheckCircleSolid, ChevronDownOutline, ChevronUpOutline,
     CirclePlusOutline, CirclePlusSolid, CloseCircleOutline, CloseCircleSolid,
     SearchOutline,
     UserSolid
@@ -192,22 +193,36 @@ let requestPriority
 let requestAssignedBy
 let requestAssignedByUsername
 let requestAssignedTo
+let requestAssignedToNames
 let requestDateOfAnnouncement
 let requestDateOfCompletion
 let solvers = []
 function newRequest() {
+    nameStar = false
+    descriptionStar = false
+    categoryStar = false
+    priorityStar = false
+    stateStar = false
+    requestSubmitFailure = false
     requestModal = true
     requestName = ""
     requestDescription = ""
     requestState = "NEW"
     requestCategory = ""
-    requestPriority = ""
+    requestPriority = 'LOW'
     requestAssignedBy = ""
     requestAssignedTo = ""
     requestDateOfAnnouncement = ""
     requestDateOfCompletion = ""
 }
 function setCurrentRequest(id){
+    nameStar = false
+    descriptionStar = false
+    categoryStar = false
+    priorityStar = false
+    stateStar = false
+    requestSubmitFailure = false
+    commentError = false
     console.log(id)
     let requestToSet = requests.find(request => request.id === id)
     if(requestToSet){
@@ -259,7 +274,8 @@ function setCurrentRequest(id){
                     name: solver.forename + " " + solver.surname
                 }));
                 requestAssignedTo = requestToSet.assignedTo.map(solver => solver.username)
-                console.log()
+                requestAssignedToNames = requestToSet.assignedTo.map(solver => solver.forename + " " + solver.surname)
+                console.log(requestAssignedToNames)
             })
             .catch((error) => {
                 console.error('Error:', error);
@@ -304,7 +320,13 @@ function setCurrentRequest(id){
 
 
         requestDateOfAnnouncement = formatDateAndTime(requestToSet.dateOfAnnouncement)
-        requestDateOfCompletion = requestToSet.dateOfCompletion
+        if(requestToSet.dateOfCompletion) {
+            requestDateOfCompletion = formatDateAndTime(requestToSet.dateOfCompletion)
+        }
+        else {
+                requestDateOfCompletion = null
+            }
+
         requestAssignedByUsername = requestToSet.assignedBy.username
         requestAssignedBy = requestToSet.assignedBy.forename + " " + requestToSet.assignedBy.surname
     }else{
@@ -341,7 +363,11 @@ function getSolversByCategory(){
             console.error('Error:', error);
         });
 }
+
 function sendPostRequest() {
+    let date = new Date();
+    let localOffset = date.getTimezoneOffset() * 60000;
+    let localISOTime = (new Date(date - localOffset)).toISOString().slice(0,-1);
     return fetch(import.meta.env.VITE_BE_URL+"/request/post", {
         method: 'POST',
         headers: {
@@ -351,7 +377,7 @@ function sendPostRequest() {
         body: JSON.stringify({
             "name": requestName,
             "description": requestDescription,
-            "dateOfAnnouncement": new Date().toISOString(),
+            "dateOfAnnouncement":localISOTime,
             "assignedBy":  parseJwt(jwt).sub,
             "requestState": "NEW",
             "requestCategory": requestCategory,
@@ -404,8 +430,72 @@ function sendPutRequest(data) {
             console.error('Error:', error);
         });
 }
+let nameStar = false
+let descriptionStar = false
+let categoryStar = false
+let priorityStar = false
+let stateStar = false
+let requestSubmitFailure = false
+
+function validateRequest() {
+    let result = false
+    requestSubmitFailure = true
+    if (!requestName || requestName === "")
+        nameStar = true
+    if(!requestDescription || requestDescription === "")
+        descriptionStar = true
+    if(!requestCategory || requestCategory === "")
+        categoryStar = true
+    if(!requestPriority || requestPriority === "") {
+        priorityStar = true
+
+    }
+    if(requestName && requestDescription && requestCategory && requestPriority &&
+        requestName !== "" && requestDescription !== "" && requestCategory !== "" && requestPriority !== ""){
+        nameStar = false
+        descriptionStar = false
+        categoryStar = false
+        priorityStar = false
+        result = true
+        requestSubmitFailure = false
+    }
+    return result;
+}
+
+function validateUpdateRequest() {
+    let result = false
+    requestSubmitFailure = true
+    if (!requestName || requestName === "")
+        nameStar = true
+    if(!requestDescription || requestDescription === "")
+        descriptionStar = true
+    if(!requestCategory || requestCategory === "")
+        categoryStar = true
+    if(!requestPriority || requestPriority === "") {
+        priorityStar = true
+    }
+    if(!requestState || requestState === "") {
+        stateStar = true
+    }
+    if(requestName && requestDescription && requestCategory && requestPriority && requestState &&
+        requestName !== "" && requestDescription !== "" && requestCategory !== "" && requestPriority !== "" && requestState !== ""){
+        nameStar = false
+        descriptionStar = false
+        categoryStar = false
+        priorityStar = false
+        stateStar = true
+        result = true
+        requestSubmitFailure = false
+    }
+    return result;
+}
+
+
 
 function postRequest(){
+    if (!validateRequest()) {
+        return;
+    }
     sendPostRequest().then(() => {
         fetchRequests(selectedTypeOfRequests).then(() => {
             sortItems()
@@ -414,10 +504,30 @@ function postRequest(){
     });
 }
 
+let commentError = false
+
+function validateComment(){
+    if (!commentToPost || commentToPost.trim() === '') {
+         commentError = true
+        return false;
+    }
+    else {
+        commentError = false
+        return true
+    }
+
+}
+
 function postComment(){
+    if (!validateComment()) {
+        return;
+    }
     sendPostComment().then(() => {
         fetchRequestDetail(requestId).then(() => {
             requestModal = true
+            fetchRequests(selectedTypeOfRequests).then(() => {
+                sortItems()
+            });
         });
     });
     commentToPost = null
@@ -427,13 +537,15 @@ function updateRequest(){
 const data = {
     "name": requestName,
     "description": requestDescription,
-    "dateOfCompletion": requestDateOfCompletion,
     "assignedTo":  requestAssignedTo,
     "requestState": requestState,
     "requestCategory": requestCategory,
     "requestPriority": requestPriority
 };
     console.log(data)
+    if (!validateUpdateRequest()) {
+        return;
+    }
     sendPutRequest(data).then(() => {
         fetchRequests(selectedTypeOfRequests).then(() => {
             sortItems()
@@ -596,7 +708,7 @@ if (parseJwt(jwt).role === "EMPLOYEE") {
 
 let filterActive = false
 let currentPage = 1;
-const itemsPerPage = 10;
+const itemsPerPage = 12;
 
 function setPage(page) {
     currentPage = page;
@@ -661,38 +773,48 @@ $: title = requestName ? requestName : "Založení nového požadavku";
 
 <div>
     <Modal size="lg" {title} bind:open={requestModal} on:close={() => navigate("/requests")}>
+
         <div class="container">
             <!-- Main Section (2/3 width) -->
         <div class="main-section">
             {#if requestAssignedBy === ""}
-            <Label for="request-name" class="mb-2">Název požadavku</Label>
+            <Label for="request-name" class="mb-2">Název požadavku<span class:error-color={nameStar}>*</span></Label>
             <Input type="text" id="request-name" class="mb-1 focus:border-blue-700 focus:ring-blue-700" bind:value={requestName} placeholder="Zadejte název požadavku" required />
             {/if}
-            <label for="request-description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Popis požadavku</label>
+            <label for="request-description" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Popis požadavku<span class:error-color={descriptionStar}>*</span></label>
             <textarea bind:value={requestDescription} id="request-description" rows="4" class="mb-1 block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-700 focus:border-blue-700 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Popište svůj požadavek"></textarea>
             <Label>
-                Kategorie
+                Kategorie<span class:error-color={categoryStar}>*</span>
                 <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" on:change={getSolversByCategory} items={categories} bind:value={requestCategory} placeholder="Vyberte kategorii"/>
             </Label>
             <Label>
-                Priorita
+                Priorita<span class:error-color={priorityStar}>*</span>
                 <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={priority} bind:value={requestPriority} placeholder="Vyberte prioritu"/>
             </Label>
-            {#if requestAssignedBy}
+            {#if requestAssignedBy !== ""}
             <Label>
-                Stav
+                Stav<span class:error-color={stateStar}>*</span>
                 <Select class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={state} bind:value={requestState} placeholder="Vyberte stav"/>
             </Label>
+                {#if requestAssignedBy}
                 <Label for="assigned-by" class="mb-2">Požadavek založil/a</Label>
                 <Input type="text" id="assigned-by" class="mb-1 focus:border-blue-700 focus:ring-blue-700" disabled bind:value={requestAssignedBy}/>
-            <Label>
+                {/if}
+                {#if requestAssignedToNames && parseJwt(jwt).role === "EMPLOYEE"}
+                    <Label for="assigned-by" class="mb-2">Přiřazený řešitel</Label>
+                    <Input type="text" id="assigned-by" class="mb-1 focus:border-blue-700 focus:ring-blue-700" disabled value={requestAssignedToNames.join(", ")}/>
+                {:else}
+                <Label>
                 Přiřazený řešitel
-                <MultiSelect class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700 focus-within:border-blue-700 focus-within:ring-blue-700" items={solvers} bind:value={requestAssignedTo} placeholder="Zvolte přiřazeného řešitele"/>
-            </Label>
+                <MultiSelect class="mt-2 mb-1 disabled focus:border-blue-700 focus:ring-blue-700 focus-within:border-blue-700 focus-within:ring-blue-700" items={solvers} bind:value={requestAssignedTo} placeholder="Zvolte přiřazeného řešitele"/>
+                </Label>
+                {/if}
             <Label for="date-of-announcement" class="mb-2">Datum ohlášení</Label>
             <Input type="text" id="date-of-announcement" class="mb-1 focus:border-blue-700 focus:ring-blue-700" disabled value={requestDateOfAnnouncement}/>
+            {#if requestDateOfCompletion}
             <Label for="date-of-completion" class="mb-2">Datum dokončení</Label>
-            <Input type="datetime-local" id="date-of-completion" class="mb-1 focus:border-blue-700 focus:ring-blue-700" bind:value={requestDateOfCompletion}/>
+            <Input type="text" id="date-of-completion" class="mb-1 focus:border-blue-700 focus:ring-blue-700" disabled value={requestDateOfCompletion}/>
+            {/if}
             {/if}
         </div>
             {#if requestAssignedBy}
@@ -721,12 +843,18 @@ $: title = requestName ? requestName : "Založení nového požadavku";
             {:else}
                 <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => postRequest()}>Zadat</Button>
             {/if}
+            {#if requestSubmitFailure}
+                <Alert color="red"><CloseCircleSolid slot="icon" class="text-red-600" size="sm" />Nejsou vyplněny všechny povinné položky.</Alert>
+            {/if}
+            {#if commentError}
+                <Alert color="red"><CloseCircleSolid slot="icon" class="text-red-600" size="sm" />Komentář nesmí být prázdný.</Alert>
+            {/if}
         </svelte:fragment>
-
     </Modal>
+
     <Header ></Header>
     <div class="page-background">
-        <div class="page-content mt-[25]">
+        <div class="page-content mt-[25] overflow-x-auto">
             <div class="flex justify-between items-center p-4">
                 <div class="flex w-1/3">
                 <Button on:click={newRequest} size="sm" class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0"><CirclePlusSolid class="mr-1" size="sm" />Založit požadavek</Button>
@@ -744,7 +872,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                     </Button>
                     </div>
             </div>
-            <Table striped={true} divClass="min-height" class="xl:table-fixed w-full h-1/2 overflow-x-auto">
+            <Table striped={true} divClass="min-height" class="xl:table-fixed w-full h-1/2">
                 <TableHead>
                     <TableHeadCell><div class="flex items-center">POŽADAVEK</div></TableHeadCell>
                     <TableHeadCell><div class="flex items-center">POPIS POŽADAVKU </div></TableHeadCell>
@@ -892,8 +1020,8 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                     <TableBodyRow>
                         <TableBodyCell class="cursor-pointer" on:click={() => {
                                setCurrentRequest(request.id)
-                               requestModal = true}}>{request.name}</TableBodyCell>
-                        <TableBodyCell>{request.description}</TableBodyCell>
+                               requestModal = true}}>{request.name.length > 20 ? request.name.substring(0, 20) + "..." : request.name}</TableBodyCell>
+                        <TableBodyCell>{request.description.length > 20 ? request.description.substring(0, 20) + "..." : request.description}</TableBodyCell>
                         <TableBodyCell><p class={stateClass(request.requestState)}>{request.requestState}</p></TableBodyCell>
                         <TableBodyCell><p class={categoryClass(request.requestCategory)}>{request.requestCategory}</p></TableBodyCell>
                         <TableBodyCell><p class={priorityClass(request.requestPriority)}>{request.requestPriority}</p></TableBodyCell>
@@ -929,6 +1057,10 @@ $: title = requestName ? requestName : "Založení nového požadavku";
 
 <style>
 
+    .error-color {
+        color: red;
+    }
+
     .min-height{
         min-height: 300px;
     }
@@ -938,7 +1070,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
         justify-content: center;
         list-style: none;
         padding: 0;
-        margin-top: 20px;
+        margin-top: 25px;
     }
 
     .pagination li {
@@ -981,7 +1113,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
         box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
         background-color: white;
         border-radius: 7px;
-        height: 94vh;
+        height: 97vh;
     }
 
     .comment {

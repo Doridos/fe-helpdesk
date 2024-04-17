@@ -3,6 +3,7 @@ import Header from "../lib/Header.svelte";
 import {parseJwt} from "../lib/utils.js";
 
 import {
+    Alert,
     Button, Checkbox, Dropdown, DropdownDivider, DropdownItem, Input, Label,
     Modal, MultiSelect, Pagination,
     Search, Select, Spinner,
@@ -26,7 +27,7 @@ let users = []
 let open = false
 let success = false
 let failure = false
-let requestModal = false;
+let userModal = false;
 let userNameAndSurname
 let userRole
 let userCategories = []
@@ -74,7 +75,26 @@ function sendPutToUpdateEmployee() {
         });
 }
 
+let categoriesEmpty = false
+
+function validateUpdateEmployee(){
+    console.log(userCategories.length)
+    console.log(userRole)
+    if(userCategories.length < 1 && userRole === "SOLVER"){
+        console.log("empty")
+        categoriesEmpty = true
+        return false
+    }
+    return true
+}
+
 function updateEmployee(){
+
+    if(!validateUpdateEmployee()){
+        console.log("250")
+        return;
+    }
+
     console.log(userRole)
     if(userRole === "EMPLOYEE" || userRole === "NON_ACTIVE"){
         userCategories = []
@@ -82,6 +102,7 @@ function updateEmployee(){
     sendPutToUpdateEmployee().then((data) => {
         console.log(data)
         fetchEmployees()
+        userModal = false
     })
 }
 
@@ -153,12 +174,15 @@ function getEmployeesFromAd(){
         else{
             success = true
         }
+        fetchEmployees()
     });
 
 }
 
 
 function setCurrentUser(username){
+    userModal = true
+    categoriesEmpty = false
     userToChangeUsername = username
     let userToSet = users.find(user => user.username === username)
     userCategories = []
@@ -367,7 +391,7 @@ let roleDropDownActive = false
 
 <div>
 
-    <Modal class="h-1/2" title={userNameAndSurname} bind:open={requestModal} autoclose>
+    <Modal class="h-1/2" title={userNameAndSurname} bind:open={userModal}>
         <div class="container">
             <!-- Main Section (2/3 width) -->
         <div class="main-section">
@@ -385,6 +409,9 @@ let roleDropDownActive = false
         </div>
         <svelte:fragment slot="footer">
             <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => updateEmployee()}>Uložit</Button>
+            {#if categoriesEmpty || (userRole === "SOLVER" && userCategories.length < 1)}
+                <Alert color="red"><CloseCircleSolid slot="icon" class="text-red-600" size="sm" />Pokud je uživatel řešitelem, musí mít přiřazenou alespoň jednu kategorii.</Alert>
+            {/if}
         </svelte:fragment>
 
     </Modal>
@@ -392,7 +419,7 @@ let roleDropDownActive = false
 
     <div class="page-background">
         {#if parseJwt(localStorage.getItem("jwt")).role === "ADMIN"}
-        <div class="page-content mt-[25]">
+        <div class="page-content mt-[25] overflow-x-auto">
             <div class="flex justify-between items-center p-4">
                 <div class="flex w-1/3">
                 <Button size="sm" class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" on:click={() => getEmployeesFromAd()}><UserAddSolid class="mr-1" size="sm" />Načíst uživatelé z Active directory</Button>
@@ -448,7 +475,6 @@ let roleDropDownActive = false
                     <TableBodyRow>
                         <TableBodyCell class="cursor-pointer" on:click={() => {
                                setCurrentUser(person.username)
-                               requestModal = true
                         }}>{person.name}</TableBodyCell>
                         <TableBodyCell><p class={roleClass(person.role)}>{person.role}</p></TableBodyCell>
                         <TableBodyCell>
@@ -505,7 +531,7 @@ let roleDropDownActive = false
         justify-content: center;
         list-style: none;
         padding: 0;
-        margin-top: 20px;
+        margin-top: 25px;
     }
 
     .pagination li {
