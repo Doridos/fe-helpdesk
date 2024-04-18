@@ -366,7 +366,7 @@
 
     }
     let dateFilters = [
-        { value: '0', name: 'Dneska' },
+        { value: '0', name: 'Dnes' },
         { value: '1', name: 'Včera' },
         { value: '7', name: 'Posledních 7 dnů' },
         { value: '30', name: 'Posledních 30 dnů' },

@@ -140,7 +140,7 @@
                 <Label for="password" class="mb-2">Heslo<span class:error-color={passwordStar}>*</span>
                 </Label>
                 <Input id="password" bind:value={password} type={showPassword ? 'text' : 'password'} class="focus:border-blue-700 focus:ring-blue-700" placeholder="•••••••••" size="md">
-                    <button slot="right" on:click={() => (showPassword = !showPassword)} class="pointer-events-auto">
+                    <button type="button" slot="right" on:click={() => (showPassword = !showPassword)} class="pointer-events-auto">
                         {#if showPassword}
                             <EyeOutline class="w-6 h-6" />
                         {:else}
