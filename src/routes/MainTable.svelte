@@ -367,9 +367,6 @@ function getSolversByCategory(){
 }
 
 function sendPostRequest() {
-    let date = new Date();
-    let localOffset = date.getTimezoneOffset() * 60000;
-    let localISOTime = (new Date(date - localOffset)).toISOString().slice(0,-1);
     return fetch(import.meta.env.VITE_BE_URL+"/request/post", {
         method: 'POST',
         headers: {
@@ -379,7 +376,6 @@ function sendPostRequest() {
         body: JSON.stringify({
             "name": requestName,
             "description": requestDescription,
-            "dateOfAnnouncement":localISOTime,
             "assignedBy":  parseJwt(jwt).sub,
             "requestState": "NEW",
             "requestCategory": requestCategory,
@@ -403,7 +399,6 @@ function sendPostComment() {
         },
         body: JSON.stringify({
             "content": commentToPost,
-            "dateOfComment": new Date().toISOString(),
             "authorUsername": parseJwt(jwt).sub,
             "requestId": requestId
         }),

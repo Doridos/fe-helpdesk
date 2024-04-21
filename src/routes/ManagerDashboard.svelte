@@ -1,5 +1,16 @@
 <script>
-    import {Chart, Card, A, Button, Dropdown, DropdownItem, Popover, Tooltip, Select} from 'flowbite-svelte';
+    import {
+        Chart,
+        Card,
+        A,
+        Button,
+        Dropdown,
+        DropdownItem,
+        Popover,
+        Tooltip,
+        Select,
+        WidgetPlaceholder
+    } from 'flowbite-svelte';
     import {
         InfoCircleSolid,
         ChevronDownOutline,
@@ -16,8 +27,9 @@
     import {parseJwt} from "../lib/utils.js";
     import {navigate} from "svelte-routing";
 
+
     let options = {
-        series: [],
+        series: [35.1, 23.5, 2.4, 5.4],
         colors: ['#ef9b20', '#27aeef', '#bdcf32', '#ea5545'],
         chart: {
             height: 320,
@@ -269,8 +281,8 @@
             })
             .then(data => {
                 let order = ["NEW", "IN_PROGRESS", "SOLVED", "INVALID"];
-                // Map the data right after it is received
-                options.series = order.map(key => data[key]);
+// Map the data right after it is received
+                options.series = order.map(key => data[key] !== undefined ? data[key] : 0);
                 console.log(data);
                 return options.series; // Return the requests
             })
@@ -296,8 +308,7 @@
             .then(data => {
                 let order = ["INTRANET", "SOFTWARE", "PROPERTY", "HARDWARE", "PERMISSION", "OTHER"];
                 // Map the data right after it is received
-                chart3.chart.series  = order.map(key => data[key]);
-                // Map the data right after it is received
+                chart3.chart.series = order.map(key => data[key] !== undefined ? data[key] : 0);
                 console.log(data);
                 return options.series; // Return the requests
             })
@@ -332,12 +343,12 @@
     }
 
     onMount(() => {
-        fetchCountsByState();
-        fetchCountByCategory();
-        fetchCountByDate().then(() => {
-            filterDates();
-        });
-    });
+            fetchCountsByState();
+            fetchCountByCategory();
+            fetchCountByDate().then(() => {
+                filterDates();
+            });
+    })
 
     function filterDates() {
         console.log(selectedDateFilter)
@@ -379,7 +390,7 @@
 </script>
 <Header></Header>
 {#if parseJwt(localStorage.getItem("jwt")).role === "ADMIN"}
-<div class="grid grid-cols-3 justify-items-center mt-5">
+    <div class="grid grid-cols-3 justify-items-center mt-5">
 
 
     <Card class="max-h-fit">
@@ -447,4 +458,5 @@
             </div>
         </div>
     </div>
+
     {/if}
