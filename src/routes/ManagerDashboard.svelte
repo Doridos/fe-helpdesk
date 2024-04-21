@@ -13,6 +13,8 @@
     } from 'flowbite-svelte-icons';
     import Header from "../lib/Header.svelte";
     import {onMount} from "svelte";
+    import {parseJwt} from "../lib/utils.js";
+    import {navigate} from "svelte-routing";
 
     let options = {
         series: [],
@@ -376,6 +378,7 @@
 
 </script>
 <Header></Header>
+{#if parseJwt(localStorage.getItem("jwt")).role === "ADMIN"}
 <div class="grid grid-cols-3 justify-items-center mt-5">
 
 
@@ -434,4 +437,14 @@
     </Card>
 
 </div>
-
+    {:else}
+    <div class="page-content mt-[25]">
+        <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
+            <div class="mx-auto max-w-screen-sm text-center">
+                <h1 class="mb-4 text-7xl tracking-tight font-extrabold lg:text-9xl text-red-600 dark:text-primary-500">401</h1>
+                <p class="mb-4 text-3xl tracking-tight font-bold text-gray-900 md:text-4xl dark:text-white">Stala se chyba...</p>
+                <Button on:click={() => navigate("/requests")} class="mt-1.5 bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" type="submit">Zpátky na domovskou stránku</Button>
+            </div>
+        </div>
+    </div>
+    {/if}

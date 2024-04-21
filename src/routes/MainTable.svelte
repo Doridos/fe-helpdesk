@@ -3,8 +3,10 @@ import Header from "../lib/Header.svelte";
 import { formatDateAndTime } from "../lib/utils.js";
 import { parseJwt } from "../lib/utils.js";
 import {
+    Accordion,
+    AccordionItem,
     Alert,
-    Button, Checkbox, Dropdown, DropdownDivider, DropdownItem, Input, Label,
+    Button, Checkbox, Dropdown, DropdownDivider, DropdownItem, Input, Label, Li, List,
     Modal, MultiSelect,
     Search, Select,
     Table,
@@ -835,7 +837,37 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                         </div>
                   </Textarea>
                 </div>
+                {:else}
+                <div class="comment-section">
+                    <h3>Nápověda</h3>
+                    <div class="max-h-[480px] overflow-auto">
+                        <Accordion flush size="ld">
+                            <AccordionItem open>
+                                <span slot="header">Kategorie</span>
+                                <List list="disc" class="text-xs">
+                                    <Li>Intranet - požadavky spojené s příspěvkem na intranet</Li>
+                                    <Li>Software - požadavky spojené s programy na počítači</Li>
+                                    <Li>Majetek - požadavky spojené s evidencí majetku</Li>
+                                    <Li>Hardware - požadavky spojené s fyzickou poruchou počítače</Li>
+                                    <Li>Oprávnění - požadavky spojené s přidělením oprávnění</Li>
+                                    <Li>Jiné - požadavky, které nespadají do žádné z výše uvedených kategorií</Li>
+                                </List>
+                            </AccordionItem>
+                            <AccordionItem>
+                                <span slot="header">Priorita</span>
+                                <List list="disc" class="text-xs">
+                                    <Li>Nízká - ozveme se Vám do <b>32</b> pracovních hodin od nahlášení požadavku  </Li>
+                                    <Li>Střední - ozveme se Vám do <b>8</b> pracovních hodin od nahlášení požadavku</Li>
+                                    <Li>Vysoká - ozveme se Vám do <b>3</b> pracovních hodin od nahlášení požadavku</Li>
+                                    <Li>Kritická - ozveme se Vám do <b>1</b> pracovní hodiny od nahlášení požadavku</Li>
+                                </List>
+
+                            </AccordionItem>
+                        </Accordion>
+                    </div>
+                </div>
             {/if}
+
         </div>
         <svelte:fragment slot="footer">
             {#if requestAssignedBy}
@@ -854,6 +886,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
 
     <Header ></Header>
     <div class="page-background">
+        {#if parseJwt(localStorage.getItem("jwt")).role}
         <div class="page-content mt-[25] overflow-x-auto">
             <div class="flex justify-between items-center p-4">
                 <div class="flex w-1/3">
@@ -1052,7 +1085,19 @@ $: title = requestName ? requestName : "Založení nového požadavku";
                 <button on:click={nextPage}>Další</button>
             </div>
         </div>
+        {:else}
+            <div class="page-content mt-[25]">
+                <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
+                    <div class="mx-auto max-w-screen-sm text-center">
+                        <h1 class="mb-4 text-7xl tracking-tight font-extrabold lg:text-9xl text-red-600 dark:text-primary-500">401</h1>
+                        <p class="mb-4 text-3xl tracking-tight font-bold text-gray-900 md:text-4xl dark:text-white">Stala se chyba...</p>
+                        <Button on:click={() => navigate("/requests")} class="mt-1.5 bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" type="submit">Zpátky na domovskou stránku</Button>
+                    </div>
+                </div>
+            </div>
+        {/if}
     </div>
+
 </div>
 
 <style>

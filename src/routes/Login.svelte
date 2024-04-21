@@ -1,8 +1,19 @@
 <script>
     import Header from "../lib/Header.svelte";
-    import {Alert, Button, ButtonGroup, Input, InputAddon, Label, Toast} from "flowbite-svelte";
+    import {
+        Alert,
+        Button,
+        ButtonGroup,
+        Helper,
+        Input,
+        InputAddon,
+        Label,
+        Popover,
+        Toast,
+        Tooltip
+    } from "flowbite-svelte";
     import {navigate} from "svelte-routing";
-    import {CloseCircleSolid, EyeOutline, EyeSlashOutline} from "flowbite-svelte-icons";
+    import {CloseCircleSolid, EyeOutline, EyeSlashOutline, InfoCircleSolid} from "flowbite-svelte-icons";
     let password
     let username
     let error = false
@@ -148,6 +159,9 @@
                         {/if}
                     </button>
                 </Input>
+                <Helper class="text-sm mt-1">
+                    Přihlašujte se pomocí údajů, které zadávate do počítače.
+                </Helper>
 
             </div>
 
@@ -178,6 +192,7 @@
         background-color: white;
         max-width: 33%;
         width: 440px;
-        height: 350px;
+        height: fit-content;
     }
+
 </style>
