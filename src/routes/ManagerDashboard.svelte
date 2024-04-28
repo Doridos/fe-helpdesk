@@ -389,7 +389,7 @@
 
 </script>
 <Header></Header>
-{#if parseJwt(localStorage.getItem("jwt")).role === "ADMIN"}
+{#if parseJwt(localStorage.getItem("jwt")).role === "ADMIN" || parseJwt(localStorage.getItem("jwt")).role === "MANAGER" }
     <div class="grid grid-cols-3 justify-items-center mt-5">
 
 

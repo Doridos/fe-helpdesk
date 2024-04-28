@@ -881,7 +881,7 @@ $: title = requestName ? requestName : "Založení nového požadavku";
 
     <Header ></Header>
     <div class="page-background">
-        {#if parseJwt(localStorage.getItem("jwt")).role}
+        {#if parseJwt(localStorage.getItem("jwt")).role && parseJwt(localStorage.getItem("jwt")).role !== "NON_ACTIVE"}
         <div class="page-content mt-[25] overflow-x-auto">
             <div class="flex justify-between items-center p-4">
                 <div class="flex w-1/3">

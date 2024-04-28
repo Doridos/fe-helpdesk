@@ -1,11 +1,11 @@
 <script>
-    import {Button} from "flowbite-svelte";
+    import {Alert, Banner, Button} from "flowbite-svelte";
     import {
-        ArrowLeftToBracketOutline, ChartPieOutline,
+        ArrowLeftToBracketOutline, ArrowRightOutline, ChartPieOutline,
         CogSolid,
         EnvelopeSolid,
         HomeOutline,
-        HomeSolid,
+        HomeSolid, InfoCircleSolid, SalePercentSolid,
         UserSolid
     } from "flowbite-svelte-icons";
     import {navigate} from "svelte-routing";
@@ -49,6 +49,16 @@
         </div>
 
     </div>
+    <Banner id="bottom-banner" position="absolute" bannerType="bottom">
+        <p class="flex items-center text-sm font-normal text-gray-500 dark:text-gray-400">
+    <span class="inline-flex p-1 me-3 bg-gray-200 rounded-full dark:bg-gray-600">
+      <InfoCircleSolid class="w-4 h-4 text-gray-500 dark:text-gray-400" />
+    </span>
+    <span>
+        Aktuálně je systém ve stavu testování, pokud narazíte na chybu, informujte nás prosím na následujícím <a href="mailto:babyc@ulz.cz" class="text-blue-500 dark:text-blue-400">e-mailu</a>.
+    </span>
+        </p>
+    </Banner>
 </div>
 
 
