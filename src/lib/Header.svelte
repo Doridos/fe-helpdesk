@@ -12,10 +12,22 @@
     import {parseJwt} from "./utils.js";
     import {onMount} from "svelte";
     let jwt = localStorage.getItem("jwt")
-    let parsedJwt = parseJwt(jwt)
+    let userToken = parseJwt(jwt)
 
     function logout(){
         localStorage.removeItem("jwt")
+        navigate("/")
+    }
+
+    let timeOfExpiration
+    if(userToken !== null){
+        timeOfExpiration = userToken.exp
+    }
+
+    const currentTime = Math.floor(Date.now() / 1000); // Get current Unix timestamp
+    if (timeOfExpiration < currentTime) {
+        localStorage.removeItem("jwt");
+        alert("Vaše přihlášení vypršelo, přihlaste se prosím znovu.")
         navigate("/")
     }
 </script>
@@ -43,7 +55,7 @@
                     {:else}
                 <Button size="xs"  on:click={() => navigate("/requests")} class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><HomeOutline size="sm" /></Button>
                 {/if}
-                <Button size="sm" class="bg-transparent border-white border hover:bg-transparent focus-within:ring-opacity-0"><UserSolid class=mr-1 size="sm" />{parsedJwt.forename + " " + parsedJwt.surname}</Button>
+                <Button size="sm" class="bg-transparent border-white border hover:bg-transparent focus-within:ring-opacity-0"><UserSolid class=mr-1 size="sm" />{userToken.forename + " " + userToken.surname}</Button>
             <Button on:click={logout} size="sm" class="bg-transparent border-white border hover:bg-[#254e80] focus-within:ring-opacity-0"><ArrowLeftToBracketOutline class=mr-2 size="sm" />Odhlásit se</Button>
             {/if}
         </div>
