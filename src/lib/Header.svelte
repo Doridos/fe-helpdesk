@@ -1,16 +1,16 @@
 <script>
-    import {Alert, Banner, Button} from "flowbite-svelte";
+    import {Banner, Button} from "flowbite-svelte";
     import {
-        ArrowLeftToBracketOutline, ArrowRightOutline, ChartPieOutline,
+        ArrowLeftToBracketOutline,
+        ChartPieOutline,
         CogSolid,
-        EnvelopeSolid,
         HomeOutline,
-        HomeSolid, InfoCircleSolid, SalePercentSolid,
+        InfoCircleSolid,
         UserSolid
     } from "flowbite-svelte-icons";
     import {navigate} from "svelte-routing";
     import {parseJwt} from "./utils.js";
-    import {onMount} from "svelte";
+
     let jwt = localStorage.getItem("jwt")
     let userToken = parseJwt(jwt)
 

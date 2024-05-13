@@ -1,19 +1,9 @@
 <script>
     import Header from "../lib/Header.svelte";
-    import {
-        Alert,
-        Button,
-        ButtonGroup,
-        Helper,
-        Input,
-        InputAddon,
-        Label,
-        Popover,
-        Toast,
-        Tooltip
-    } from "flowbite-svelte";
+    import {Button, Helper, Input, Label, Toast} from "flowbite-svelte";
     import {navigate} from "svelte-routing";
-    import {CloseCircleSolid, EyeOutline, EyeSlashOutline, InfoCircleSolid} from "flowbite-svelte-icons";
+    import {CloseCircleSolid, EyeOutline, EyeSlashOutline} from "flowbite-svelte-icons";
+
     let password
     let username
     let error = false

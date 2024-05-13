@@ -1,30 +1,41 @@
 <script>
-import Header from "../lib/Header.svelte";
-import { formatDateAndTime } from "../lib/utils.js";
-import { parseJwt } from "../lib/utils.js";
-import {
-    Accordion,
-    AccordionItem,
-    Alert,
-    Button, Checkbox, Dropdown, DropdownDivider, DropdownItem, Input, Label, Li, List,
-    Modal, MultiSelect,
-    Search, Select,
-    Table,
-    TableBody,
-    TableBodyCell,
-    TableBodyRow,
-    TableHead,
-    TableHeadCell, Textarea, Toast
-} from "flowbite-svelte";
-import {
-    ArrowDownOutline,
-    ArrowLeftToBracketOutline, CheckCircleSolid, ChevronDownOutline, ChevronUpOutline,
-    CirclePlusOutline, CirclePlusSolid, CloseCircleOutline, CloseCircleSolid,
-    SearchOutline,
-    UserSolid
-} from "flowbite-svelte-icons";
-import {navigate} from "svelte-routing";
-export let id;
+    import Header from "../lib/Header.svelte";
+    import {formatDateAndTime, parseJwt} from "../lib/utils.js";
+    import {
+        Accordion,
+        AccordionItem,
+        Alert,
+        Button,
+        Checkbox,
+        Dropdown,
+        DropdownDivider,
+        DropdownItem,
+        Input,
+        Label,
+        Li,
+        List,
+        Modal,
+        MultiSelect,
+        Search,
+        Select,
+        Table,
+        TableBody,
+        TableBodyCell,
+        TableBodyRow,
+        TableHead,
+        TableHeadCell,
+        Textarea
+    } from "flowbite-svelte";
+    import {
+        ChevronDownOutline,
+        ChevronUpOutline,
+        CirclePlusSolid,
+        CloseCircleSolid,
+        SearchOutline
+    } from "flowbite-svelte-icons";
+    import {navigate} from "svelte-routing";
+
+    export let id;
 let requestModal
 let requests = []
 let userCurrentUserCategories = []

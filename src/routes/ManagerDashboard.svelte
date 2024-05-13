@@ -1,27 +1,5 @@
 <script>
-    import {
-        Chart,
-        Card,
-        A,
-        Button,
-        Dropdown,
-        DropdownItem,
-        Popover,
-        Tooltip,
-        Select,
-        WidgetPlaceholder
-    } from 'flowbite-svelte';
-    import {
-        InfoCircleSolid,
-        ChevronDownOutline,
-        ChevronRightOutline,
-        PenSolid,
-        DownloadSolid,
-        ShareNodesSolid,
-        TrashBinSolid,
-        DotsHorizontalOutline,
-        ArrowDownToBracketOutline
-    } from 'flowbite-svelte-icons';
+    import {Button, Card, Chart, Select} from 'flowbite-svelte';
     import Header from "../lib/Header.svelte";
     import {onMount} from "svelte";
     import {parseJwt} from "../lib/utils.js";

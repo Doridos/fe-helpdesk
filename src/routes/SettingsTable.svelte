@@ -1,29 +1,40 @@
 <script>
-import Header from "../lib/Header.svelte";
-import {parseJwt} from "../lib/utils.js";
+    import Header from "../lib/Header.svelte";
+    import {parseJwt} from "../lib/utils.js";
 
-import {
-    Alert,
-    Button, Checkbox, Dropdown, DropdownDivider, DropdownItem, Input, Label,
-    Modal, MultiSelect, Pagination,
-    Search, Select, Spinner,
-    Table,
-    TableBody,
-    TableBodyCell,
-    TableBodyRow,
-    TableHead,
-    TableHeadCell, Textarea, Toast
-} from "flowbite-svelte";
-import {
-    ArrowDownOutline,
-    ArrowLeftToBracketOutline, CheckCircleSolid, ChevronDownOutline, ChevronUpOutline,
-    CirclePlusOutline, CirclePlusSolid, CloseCircleSolid,
-    SearchOutline, UserAddSolid,
-    UserSolid
-} from "flowbite-svelte-icons";
-import {onMount} from "svelte";
-import {navigate} from "svelte-routing";
-let users = []
+    import {
+        Alert,
+        Button,
+        Checkbox,
+        Dropdown,
+        DropdownDivider,
+        DropdownItem,
+        Label,
+        Modal,
+        MultiSelect,
+        Search,
+        Select,
+        Spinner,
+        Table,
+        TableBody,
+        TableBodyCell,
+        TableBodyRow,
+        TableHead,
+        TableHeadCell,
+        Toast
+    } from "flowbite-svelte";
+    import {
+        CheckCircleSolid,
+        ChevronDownOutline,
+        ChevronUpOutline,
+        CloseCircleSolid,
+        SearchOutline,
+        UserAddSolid
+    } from "flowbite-svelte-icons";
+    import {onMount} from "svelte";
+    import {navigate} from "svelte-routing";
+
+    let users = []
 let open = false
 let success = false
 let failure = false

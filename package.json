@@ -18,6 +18,7 @@
     "postcss-load-config": "^5.0.2",
     "svelte": "^4.2.12",
     "tailwindcss": "^3.3.6",
+    "typedoc": "^0.25.13",
     "vite": "^5.1.6"
   },
   "dependencies": {
