@@ -1,6 +1,0 @@
-{
-  "out": "./docs",
-  "exclude": ["**/*.spec.ts"],
-  "theme": "minimal",
-  "mode": "file"
-}

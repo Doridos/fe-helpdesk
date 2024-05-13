@@ -206,7 +206,7 @@
                     }
                 }
             },
-            labels: ['Intranet', 'Software', 'Majetek', 'Hardware','Oprávnění', 'Jiné'],
+            labels: ['Intranet', 'Software', 'Majetek', 'Hardware', 'Oprávnění', 'Jiné'],
             dataLabels: {
                 enabled: true,
                 style: {
@@ -240,11 +240,21 @@
         }
     }
 
+    // Retrieving JWT token from local storage
     let jwt = localStorage.getItem("jwt")
+
+    // Object to store requests by dates
     let requestsByDates = {};
 
-    function fetchCountsByState(){
-        return fetch(import.meta.env.VITE_BE_URL+"/request/count-by-state", {
+
+    /**
+     * Function to fetch counts of requests by their state
+     * Sends a GET request to the "/request/count-by-state" endpoint
+     * Maps the received data to the options.series array
+     * @returns {Promise} - A promise that resolves to an array of counts of requests by state
+     */
+    function fetchCountsByState() {
+        return fetch(import.meta.env.VITE_BE_URL + "/request/count-by-state", {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -255,22 +265,28 @@
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                return response.json(); // This returns a promise
+                return response.json();
             })
             .then(data => {
                 let order = ["NEW", "IN_PROGRESS", "SOLVED", "INVALID"];
-// Map the data right after it is received
+
                 options.series = order.map(key => data[key] !== undefined ? data[key] : 0);
                 console.log(data);
-                return options.series; // Return the requests
+                return options.series;
             })
             .catch((error) => {
                 console.error('Error:', error);
             });
     }
 
-    function fetchCountByCategory(){
-        return fetch(import.meta.env.VITE_BE_URL+"/request/count-by-category", {
+    /**
+     * Function to fetch counts of requests by their category
+     * Sends a GET request to the "/request/count-by-category" endpoint
+     * Maps the received data to the chart3.chart.series array
+     * @returns {Promise} - A promise that resolves to an array of counts of requests by category
+     */
+    function fetchCountByCategory() {
+        return fetch(import.meta.env.VITE_BE_URL + "/request/count-by-category", {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -281,22 +297,28 @@
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                return response.json(); // This returns a promise
+                return response.json();
             })
             .then(data => {
                 let order = ["INTRANET", "SOFTWARE", "PROPERTY", "HARDWARE", "PERMISSION", "OTHER"];
-                // Map the data right after it is received
+
                 chart3.chart.series = order.map(key => data[key] !== undefined ? data[key] : 0);
                 console.log(data);
-                return options.series; // Return the requests
+                return options.series;
             })
             .catch((error) => {
                 console.error('Error:', error);
             });
     }
 
-    function fetchCountByDate(){
-        return fetch(import.meta.env.VITE_BE_URL+"/request/count-by-date", {
+    /**
+     * Function to fetch counts of requests by date
+     * Sends a GET request to the "/request/count-by-date" endpoint
+     * Stores the received data in the requestsByDates object
+     * @returns {Promise} - A promise that resolves to an array of counts of requests by date
+     */
+    function fetchCountByDate() {
+        return fetch(import.meta.env.VITE_BE_URL + "/request/count-by-date", {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -307,25 +329,26 @@
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                return response.json(); // This returns a promise
+                return response.json();
             })
             .then(data => {
-                // Map the data right after it is received
+
                 requestsByDates = data;
                 console.log(data);
-                return options.series; // Return the requests
+                return options.series;
             })
             .catch((error) => {
                 console.error('Error:', error);
             });
     }
 
+    // Fetch counts of requests by state, category, and date when the component mounts
     onMount(() => {
-            fetchCountsByState();
-            fetchCountByCategory();
-            fetchCountByDate().then(() => {
-                filterDates();
-            });
+        fetchCountsByState();
+        fetchCountByCategory();
+        fetchCountByDate().then(() => {
+            filterDates();
+        });
     })
 
     function filterDates() {
@@ -356,12 +379,13 @@
         });
 
     }
+
     let dateFilters = [
-        { value: '0', name: 'Dnes' },
-        { value: '1', name: 'Včera' },
-        { value: '7', name: 'Posledních 7 dnů' },
-        { value: '30', name: 'Posledních 30 dnů' },
-        { value: '90', name: 'Posledních 90 dnů' }
+        {value: '0', name: 'Dnes'},
+        {value: '1', name: 'Včera'},
+        {value: '7', name: 'Posledních 7 dnů'},
+        {value: '30', name: 'Posledních 30 dnů'},
+        {value: '90', name: 'Posledních 90 dnů'}
     ];
     let selectedDateFilter = '7'
 
@@ -371,70 +395,80 @@
     <div class="grid grid-cols-3 justify-items-center mt-5">
 
 
-    <Card class="max-h-fit">
-        <div class="flex justify-between items-start w-full">
-            <div class="flex-col items-center">
-                <div class="flex items-center mb-1">
-                    <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white me-1">Počet požadavku dle stavu</h5>
+        <Card class="max-h-fit">
+            <div class="flex justify-between items-start w-full">
+                <div class="flex-col items-center">
+                    <div class="flex items-center mb-1">
+                        <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white me-1">Počet požadavku
+                            dle stavu</h5>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <Chart {options} class="py-6" />
+            <Chart {options} class="py-6"/>
 
 
-    </Card>
+        </Card>
 
-    <Card>
-        <div class="flex justify-between pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
-            <div class="flex items-center align-middle">
+        <Card>
+            <div class="flex justify-between pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
+                <div class="flex items-center align-middle">
+                    <div>
+                        <h5 class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1">Počet nových
+                            požadavků</h5>
+                        <p class="text-sm font-normal text-gray-500 dark:text-gray-400">Přehled počtu zadaných
+                            požadavků</p>
+                    </div>
+                </div>
                 <div>
-                    <h5 class="leading-none text-2xl font-bold text-gray-900 dark:text-white pb-1">Počet nových požadavků</h5>
-                    <p class="text-sm font-normal text-gray-500 dark:text-gray-400">Přehled počtu zadaných požadavků</p>
+
                 </div>
             </div>
-            <div>
 
-            </div>
-        </div>
-
-        {#each Object.values(chart2) as options}
-            <Chart {options} class="py-6" />
-        {/each}
-        <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
-            <div class="flex justify-between items-center pt-5">
-                <Select on:change={filterDates} class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700" items={dateFilters} bind:value={selectedDateFilter} placeholder="Období"/>
-            </div>
-        </div>
-    </Card>
-
-    <Card>
-        <div class="flex justify-between items-start w-full">
-            <div class="flex-col items-center">
-                <div class="flex items-center mb-1">
-                    <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white me-1">Počet požadavků dle kategorie</h5>
+            {#each Object.values(chart2) as options}
+                <Chart {options} class="py-6"/>
+            {/each}
+            <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
+                <div class="flex justify-between items-center pt-5">
+                    <Select on:change={filterDates} class="mt-2 mb-1 focus:border-blue-700 focus:ring-blue-700"
+                            items={dateFilters} bind:value={selectedDateFilter} placeholder="Období"/>
                 </div>
             </div>
-            <div class="flex justify-end items-center">
+        </Card>
+
+        <Card>
+            <div class="flex justify-between items-start w-full">
+                <div class="flex-col items-center">
+                    <div class="flex items-center mb-1">
+                        <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white me-1">Počet požadavků
+                            dle kategorie</h5>
+                    </div>
+                </div>
+                <div class="flex justify-end items-center">
+                </div>
             </div>
-        </div>
 
-        {#each Object.values(chart3) as options}
-            <Chart {options} class="py-6" />
-        {/each}
+            {#each Object.values(chart3) as options}
+                <Chart {options} class="py-6"/>
+            {/each}
 
-    </Card>
+        </Card>
 
-</div>
-    {:else}
+    </div>
+{:else}
     <div class="page-content mt-[25]">
         <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
             <div class="mx-auto max-w-screen-sm text-center">
-                <h1 class="mb-4 text-7xl tracking-tight font-extrabold lg:text-9xl text-red-600 dark:text-primary-500">401</h1>
-                <p class="mb-4 text-3xl tracking-tight font-bold text-gray-900 md:text-4xl dark:text-white">Stala se chyba...</p>
-                <Button on:click={() => navigate("/requests")} class="mt-1.5 bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" type="submit">Zpátky na domovskou stránku</Button>
+                <h1 class="mb-4 text-7xl tracking-tight font-extrabold lg:text-9xl text-red-600 dark:text-primary-500">
+                    401</h1>
+                <p class="mb-4 text-3xl tracking-tight font-bold text-gray-900 md:text-4xl dark:text-white">Stala se
+                    chyba...</p>
+                <Button on:click={() => navigate("/requests")}
+                        class="mt-1.5 bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" type="submit">Zpátky
+                    na domovskou stránku
+                </Button>
             </div>
         </div>
     </div>
 
-    {/if}
+{/if}

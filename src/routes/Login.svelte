@@ -1,9 +1,14 @@
 <script>
+    // Importing Header component from "../lib/Header.svelte"
     import Header from "../lib/Header.svelte";
+    // Importing Button, Helper, Input, Label, Toast components from "flowbite-svelte"
     import {Button, Helper, Input, Label, Toast} from "flowbite-svelte";
+    // Importing navigate function from "svelte-routing" for navigation
     import {navigate} from "svelte-routing";
+    // Importing CloseCircleSolid, EyeOutline, EyeSlashOutline icons from "flowbite-svelte-icons"
     import {CloseCircleSolid, EyeOutline, EyeSlashOutline} from "flowbite-svelte-icons";
 
+    // Variables for storing user input and error states
     let password
     let username
     let error = false
@@ -12,6 +17,11 @@
     let passwordEmpty = false
     let passwordStar = false
 
+    /**
+     * Function to validate the form inputs
+     * Checks if username and password are not empty and if username matches the regular expression
+     * @returns {boolean} - Returns true if all validations pass, otherwise false
+     */
     function validateForm() {
         // Regular expression for username validation
         const usernameRegex = /^[A-Za-z0-9]+$/;
@@ -23,14 +33,12 @@
             if (!password) {
                 passwordEmpty = false
                 passwordStar = true
-            }
-            else {
+            } else {
                 passwordEmpty = false
                 passwordStar = false
             }
             return false;
-        }
-        else {
+        } else {
             usernameWrong = false;
         }
 
@@ -39,8 +47,7 @@
             passwordEmpty = true
             passwordStar = true
             return false;
-        }
-        else {
+        } else {
             passwordEmpty = false
             passwordStar = false
         }
@@ -48,6 +55,12 @@
         return true;
     }
 
+    /**
+     * Function to handle user login
+     * Sends a POST request to the authentication endpoint with the username and password
+     * If the response is ok, stores the token in local storage and navigates to "/requests"
+     * If the response is not ok or there's an error, sets the error state to true
+     */
     function login() {
         event.preventDefault();
 
@@ -68,8 +81,7 @@
             .then(response => {
                 if (!response.ok) {
                     error = true;
-                }
-                else {
+                } else {
                     error = false;
                     return response.json();
                 }
@@ -89,23 +101,29 @@
             });
 
     }
+
+    /**
+     * Function to handle Enter key press
+     * Calls the login function when the Enter key is pressed
+     * @param {object} event - The keydown event
+     */
     function handleEnterKey(event) {
         if (event.key === 'Enter') {
             login();
         }
     }
 </script>
-<svelte:window on:keydown={handleEnterKey} />
+<svelte:window on:keydown={handleEnterKey}/>
 
 <div>
-    <Header ></Header>
+    <Header></Header>
 
 
     <div class="page-container">
         {#if usernameWrong}
             <Toast position="top-left" color="red">
                 <svelte:fragment slot="icon">
-                    <CloseCircleSolid class="w-5 h-5" />
+                    <CloseCircleSolid class="w-5 h-5"/>
                     <span class="sr-only">Error icon</span>
                 </svelte:fragment>
                 Uživatelské jméno musí být vyplněné a může obsahovat pouze písmena a číslice.
@@ -114,7 +132,7 @@
         {#if passwordEmpty}
             <Toast position="top-left" color="red">
                 <svelte:fragment slot="icon">
-                    <CloseCircleSolid class="w-5 h-5" />
+                    <CloseCircleSolid class="w-5 h-5"/>
                     <span class="sr-only">Error icon</span>
                 </svelte:fragment>
                 Heslo musí být vyplněno.
@@ -123,7 +141,7 @@
         {#if error}
             <Toast position="top-left" color="red">
                 <svelte:fragment slot="icon">
-                    <CloseCircleSolid class="w-5 h-5" />
+                    <CloseCircleSolid class="w-5 h-5"/>
                     <span class="sr-only">Error icon</span>
                 </svelte:fragment>
                 Špatné uživatelské jméno nebo heslo.
@@ -131,34 +149,39 @@
         {/if}
         <div class="form-container rounded-lg grid p-8">
             <form on:submit={login}>
-            <h1 class="text-xl text-center font-semibold mb-5">Přihlášení</h1>
-            <div class="mb-6">
-                <Label for="username" class="mb-2">Uživatelské jméno<span class:error-color={usernameWrong}>*</span>
-                </Label>
-                <Input bind:value={username} type="text" id="username" class="focus:border-blue-700 focus:ring-blue-700" placeholder="dvorak" />
-            </div>
-            <div class="mb-6">
-                <Label for="password" class="mb-2">Heslo<span class:error-color={passwordStar}>*</span>
-                </Label>
-                <Input id="password" bind:value={password} type={showPassword ? 'text' : 'password'} class="focus:border-blue-700 focus:ring-blue-700" placeholder="•••••••••" size="md">
-                    <button type="button" slot="right" on:click={() => (showPassword = !showPassword)} class="pointer-events-auto">
-                        {#if showPassword}
-                            <EyeOutline class="w-6 h-6" />
-                        {:else}
-                            <EyeSlashOutline class="w-6 h-6" />
-                        {/if}
-                    </button>
-                </Input>
-                <Helper class="text-sm mt-1">
-                    Přihlašujte se pomocí údajů, které zadávate do počítače.
-                </Helper>
+                <h1 class="text-xl text-center font-semibold mb-5">Přihlášení</h1>
+                <div class="mb-6">
+                    <Label for="username" class="mb-2">Uživatelské jméno<span class:error-color={usernameWrong}>*</span>
+                    </Label>
+                    <Input bind:value={username} type="text" id="username"
+                           class="focus:border-blue-700 focus:ring-blue-700" placeholder="dvorak"/>
+                </div>
+                <div class="mb-6">
+                    <Label for="password" class="mb-2">Heslo<span class:error-color={passwordStar}>*</span>
+                    </Label>
+                    <Input id="password" bind:value={password} type={showPassword ? 'text' : 'password'}
+                           class="focus:border-blue-700 focus:ring-blue-700" placeholder="•••••••••" size="md">
+                        <button type="button" slot="right" on:click={() => (showPassword = !showPassword)}
+                                class="pointer-events-auto">
+                            {#if showPassword}
+                                <EyeOutline class="w-6 h-6"/>
+                            {:else}
+                                <EyeSlashOutline class="w-6 h-6"/>
+                            {/if}
+                        </button>
+                    </Input>
+                    <Helper class="text-sm mt-1">
+                        Přihlašujte se pomocí údajů, které zadávate do počítače.
+                    </Helper>
 
-            </div>
+                </div>
 
-            <div class="text-center">
+                <div class="text-center">
 
-                <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" type="submit">Přihlásit se</Button>
-            </div>
+                    <Button class="bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0" type="submit">Přihlásit
+                        se
+                    </Button>
+                </div>
             </form>
         </div>
     </div>
@@ -168,7 +191,8 @@
     .error-color {
         color: red;
     }
-    .page-container{
+
+    .page-container {
         display: flex;
         justify-content: center;
         height: calc(100vh - 73px);
@@ -176,6 +200,7 @@
         background-color: #F3F3F3;
 
     }
+
     .form-container {
         box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
         margin-top: 180px;
