@@ -17,6 +17,8 @@ Poté může být aplikace spuštěna pomocí příkazu:
 docker run --rm --name=<container-name> -p 80:80 -d <username/repository:tag-name>
 ```
 
+Pozn.: Uvedené příkazy je potřeba zadávat do příkazového řádku v kořenovém adresáři projektu.
+
 Pozn.: Proměnné v závorkách <> je potřeba nahradit skutečnými hodnotami.
 
 Pozn.: Pro nahrání aplikace do Docker Hubu je potřeba mít účet na této platformě.
