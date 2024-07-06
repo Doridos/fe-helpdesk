@@ -1,4 +1,5 @@
 <script>
+    import logo from '../assets/logo.png';
     // Importing Banner and Button components from "flowbite-svelte"
     import {Banner, Button} from "flowbite-svelte";
     // Importing various icons from "flowbite-svelte-icons"
@@ -50,7 +51,9 @@
 
     <div class="flex justify-between items-center">
 
-        <div class="flex-1"></div>
+        <div class="flex-1">
+            <img class="h-12" src={logo} alt="Description of the image">
+        </div>
 
         <div class="cursor-pointer flex-1 text-center">
             <h1 on:click={() => navigate("/requests")} class="text-xl">Helpdesk</h1>
@@ -89,17 +92,7 @@
         </div>
 
     </div>
-    <Banner id="bottom-banner" position="absolute" bannerType="bottom">
-        <p class="flex items-center text-sm font-normal text-gray-500 dark:text-gray-400">
-    <span class="inline-flex p-1 me-3 bg-gray-200 rounded-full dark:bg-gray-600">
-      <InfoCircleSolid class="w-4 h-4 text-gray-500 dark:text-gray-400"/>
-    </span>
-            <span>
-        Aktuálně je systém ve stavu testování, pokud narazíte na chybu, informujte nás prosím na následujícím <a
-                    href="mailto:babyc@ulz.cz" class="text-blue-500 dark:text-blue-400">e-mailu</a>.
-    </span>
-        </p>
-    </Banner>
+
 </div>
 
 

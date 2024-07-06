@@ -45,9 +45,11 @@
     let jwt = localStorage.getItem("jwt")
 
     // Fetch user details and set categories
-    fetchUserDetail().then((data) => {
-        userCurrentUserCategories = data.categories
-    })
+    if(jwt){
+        fetchUserDetail().then((data) => {
+            userCurrentUserCategories = data.categories
+        })
+    }
 
     /**
      * Fetches requests based on the request type.
@@ -756,19 +758,19 @@
 
     let typeOfRequests;
 
-    if (parseJwt(jwt).role === "EMPLOYEE") {
+    if (jwt && parseJwt(jwt).role === "EMPLOYEE") {
         selectedTypeOfRequests = '/assigned/by/'
         typeOfRequests = [
             {value: '/assigned/by/', name: 'Mé zadané požadavky'},
         ];
-    } else if (parseJwt(jwt).role === "SOLVER") {
+    } else if (jwt && parseJwt(jwt).role === "SOLVER") {
         selectedTypeOfRequests = '/assigned/by/'
         typeOfRequests = [
             {value: '/assigned/by/', name: 'Mé zadané požadavky'},
             {value: '/assigned/to/', name: 'Požadavky, které řeším'},
             {value: '/categories/', name: 'Mé přiřazené kategorie'},
         ];
-    } else if (parseJwt(jwt).role === "MANAGER") {
+    } else if (jwt && parseJwt(jwt).role === "MANAGER") {
         selectedTypeOfRequests = '/all'
         typeOfRequests = [
             {value: '/assigned/by/', name: 'Mé zadané požadavky'},
@@ -776,7 +778,7 @@
             {value: '/categories/', name: 'Mé přiřazené kategorie'},
             {value: '/all', name: 'Všechny požadavky'},
         ];
-    } else if (parseJwt(jwt).role === "ADMIN") {
+    } else if (jwt && parseJwt(jwt).role === "ADMIN") {
         selectedTypeOfRequests = '/all'
         typeOfRequests = [
             {value: '/assigned/by/', name: 'Mé zadané požadavky'},
@@ -993,7 +995,7 @@
 
     <Header></Header>
     <div class="page-background">
-        {#if parseJwt(localStorage.getItem("jwt")).role && parseJwt(localStorage.getItem("jwt")).role !== "NON_ACTIVE"}
+        {#if jwt && parseJwt(localStorage.getItem("jwt")).role && parseJwt(localStorage.getItem("jwt")).role !== "NON_ACTIVE"}
             <div class="page-content mt-[25] overflow-x-auto">
                 <div class="flex justify-between items-center p-4">
                     <div class="flex w-1/3">
@@ -1212,9 +1214,15 @@
                                 {/if}
                             </div>
                         </TableHeadCell>
+                        {#if parseJwt(localStorage.getItem("jwt")).role === "EMPLOYEE"}
                         <TableHeadCell>
                             <div class="flex items-center">ŘEŠITEL/KA</div>
                         </TableHeadCell>
+                        {:else}
+                        <TableHeadCell>
+                            <div class="flex items-center">ŽADATEL/KA</div>
+                        </TableHeadCell>
+                        {/if}
                         <TableHeadCell>
                             <div class="flex items-center">DATUM DOKONČENÍ</div>
                         </TableHeadCell>
@@ -1238,11 +1246,20 @@
                                             class={priorityClass(request.requestPriority)}>{request.requestPriority}</p>
                                     </TableBodyCell>
                                     <TableBodyCell>{formatDateAndTime(request.dateOfAnnouncement)}</TableBodyCell>
-                                    {#if request.assignedTo.length > 0}
-                                        <TableBodyCell>{request.assignedTo[0].forename + " " + request.assignedTo[0].surname}</TableBodyCell>
+                                    {#if parseJwt(localStorage.getItem("jwt")).role === "EMPLOYEE"}
+                                        {#if request.assignedTo.length > 0}
+                                            <TableBodyCell>{request.assignedTo[0].forename + " " + request.assignedTo[0].surname}</TableBodyCell>
+                                        {:else}
+                                            <TableBodyCell>Nepřiřazeno</TableBodyCell>
+                                        {/if}
                                     {:else}
-                                        <TableBodyCell>Nepřiřazeno</TableBodyCell>
+                                        {#if request.assignedBy}
+                                            <TableBodyCell>{request.assignedBy.forename + " " + request.assignedBy.surname}</TableBodyCell>
+                                        {:else}
+                                            <TableBodyCell>Nepřiřazeno</TableBodyCell>
+                                        {/if}
                                     {/if}
+
                                     <TableBodyCell>{request.dateOfCompletion !== null ? formatDateAndTime(request.dateOfCompletion) : "" }</TableBodyCell>
                                 </TableBodyRow>
                             {/each}
@@ -1264,6 +1281,22 @@
                     <button on:click={nextPage}>Další</button>
                 </div>
             </div>
+            {:else if !jwt}
+            <div class="page-content mt-[25]">
+                <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
+                    <div class="mx-auto max-w-screen-sm text-center">
+                        <h1 class="mb-4 text-7xl tracking-tight font-extrabold lg:text-9xl text-red-600 dark:text-primary-500">
+                            401</h1>
+                        <p class="mb-4 text-3xl tracking-tight font-bold text-gray-900 md:text-4xl dark:text-white">
+                            Uživatel není přihlášen</p>
+                        <Button on:click={() => navigate("/")}
+                                class="mt-1.5 bg-[#2362a2] hover:bg-[#254e80] focus-within:ring-opacity-0"
+                                type="submit">Zpátky na přihlašovací stránku
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
         {:else}
             <div class="page-content mt-[25]">
                 <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
