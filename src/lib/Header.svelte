@@ -52,7 +52,7 @@
     <div class="flex justify-between items-center">
 
         <div class="flex-1">
-            <img class="h-12" src={logo} alt="Description of the image">
+            <img class="h-12" src={logo} alt="Logo organizace">
         </div>
 
         <div class="cursor-pointer flex-1 text-center">
